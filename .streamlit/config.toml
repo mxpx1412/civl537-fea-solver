@@ -1,0 +1,9 @@
+[server]
+headless = true
+port = 8501
+
+[theme]
+primaryColor = "#2138ab" # xkcd:sapphire
+backgroundColor = "#ffffff"
+secondaryBackgroundColor = "#fff4f2" # xkcd:very light pink
+textColor = "#ca0147" # xkcd:ruby
