@@ -101,6 +101,7 @@ v(x, y)
 $$
 
 The strains can be written as:
+
 $$
 \begin{align}
     \begin{Bmatrix}
@@ -126,6 +127,7 @@ $$
 $$
 
 Then at each element's nodes $i$, $j$, $k$, we have:
+
 $$
 \begin{align}
     u_i &= \alpha_1 + \alpha_2 x_i + \alpha_3 y_i \\
@@ -138,6 +140,7 @@ $$
 $$
 
 In matrix form, we can write:
+
 $$
 \begin{align}
 \begin{Bmatrix}
@@ -181,6 +184,7 @@ $$
 
 Solving for the coefficients $\alpha_n$ and $\beta_n$, we first invert the
 matrix $\mathbf{A}$:
+
 $$
 \begin{align}
     \mathbf{A}^{-1}
