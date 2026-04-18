@@ -128,27 +128,22 @@ $$
 Then at each element's nodes $i$, $j$, $k$, we have:
 $$
 \begin{align}
-u_i
-    &= \alpha_1 + \alpha_2 x_i + \alpha_3 y_i \\
-u_j
-    &= \alpha_1 + \alpha_2 x_j + \alpha_3 y_j \\
-u_k
-    &= \alpha_1 + \alpha_2 x_k + \alpha_3 y_k \\
-v_i
-    &= \beta_1 + \beta_2 x_i + \beta_3 y_i \\
-v_j
-    &= \beta_1 + \beta_2 x_j + \beta_3 y_j \\
-v_k
-    &= \beta_1 + \beta_2 x_k + \beta_3 y_k 
+    u_i &= \alpha_1 + \alpha_2 x_i + \alpha_3 y_i \\
+    u_j &= \alpha_1 + \alpha_2 x_j + \alpha_3 y_j \\
+    u_k &= \alpha_1 + \alpha_2 x_k + \alpha_3 y_k \\
+    v_i &= \beta_1 + \beta_2 x_i + \beta_3 y_i \\
+    v_j &= \beta_1 + \beta_2 x_j + \beta_3 y_j \\
+    v_k &= \beta_1 + \beta_2 x_k + \beta_3 y_k 
 \end{align}
 $$
 
 In matrix form, we can write:
-
 $$
 \begin{align}
 \begin{Bmatrix}
-    u_i \\ u_j \\ u_k \\
+    u_i \\ 
+    u_j \\ 
+    u_k \\
 \end{Bmatrix}
 &= 
 \underbrace{
@@ -159,10 +154,14 @@ $$
 \end{bmatrix}}_{\mathbf{A}}
 \underbrace{
 \begin{Bmatrix}
-    \alpha_1 \\ \alpha_2 \\ \alpha_3 \\
+    \alpha_1 \\ 
+    \alpha_2 \\ 
+    \alpha_3 \\
 \end{Bmatrix}}_{\mathbf{\alpha}} \\
 \begin{Bmatrix}
-    v_i \\ v_j \\ v_k \\
+    v_i \\ 
+    v_j \\ 
+    v_k \\
 \end{Bmatrix}
 &= 
 \underbrace{
@@ -173,7 +172,9 @@ $$
 \end{bmatrix}}_{\mathbf{A}}
 \underbrace{
 \begin{Bmatrix}
-    \beta_1 \\ \beta_2 \\ \beta_3 \\
+    \beta_1 \\ 
+    \beta_2 \\ 
+    \beta_3 \\
 \end{Bmatrix}}_{\mathbf{\beta}}
 \end{align}
 $$
@@ -183,8 +184,7 @@ matrix $\mathbf{A}$:
 $$
 \begin{align}
     \mathbf{A}^{-1}
-    &= 
-    \frac{1}{\det\mathbf{A}}
+    &= \frac{1}{\det\mathbf{A}}
     \begin{bmatrix}
         x_j y_k - x_k y_j & x_k y_i - x_i y_k & x_i y_j - x_j y_i \\
         y_j - y_k & y_k - y_i & y_i - y_j \\
@@ -205,7 +205,9 @@ solving the coefficients, we have:
 $$
 \begin{align}
 \begin{Bmatrix}
-\alpha_1 \\ \alpha_2 \\ \alpha_3 \\
+    \alpha_1 \\ 
+    \alpha_2 \\ 
+    \alpha_3 \\
 \end{Bmatrix}
 &= 
 \frac{1}{2\Delta}
@@ -215,10 +217,14 @@ $$
     c_i & c_j & c_k \\
 \end{bmatrix}
 \begin{Bmatrix}
-u_i \\ u_j \\ u_k \\
+    u_i \\ 
+    u_j \\ 
+    u_k \\
 \end{Bmatrix} \\
 \begin{Bmatrix}
-\beta_1 \\ \beta_2 \\ \beta_3 \\
+    \beta_1 \\ 
+    \beta_2 \\ 
+    \beta_3 \\
 \end{Bmatrix}
 &=
 \frac{1}{2\Delta}
