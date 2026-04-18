@@ -100,7 +100,7 @@ v(x, y)
 \end{align}
 $$
 
-The strains can be written as: 
+The strains can be written as:
 
 $$
 \begin{align}
@@ -126,7 +126,7 @@ $$
 \end{align}
 $$
 
-Then at each element's nodes $i$, $j$, $k$, we have: 
+Then at each element's nodes $i$, $j$, $k$, we have:
 
 $$
 \begin{align}
