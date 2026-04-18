@@ -228,7 +228,9 @@ u_i \\ u_j \\ u_k \\
     c_i & c_j & c_k \\
 \end{bmatrix}
 \begin{Bmatrix}
-v_i \\ v_j \\ v_k \\
+    v_i \\ 
+    v_j \\ 
+    v_k \\
 \end{Bmatrix} \\
 \end{align}
 $$
