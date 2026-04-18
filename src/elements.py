@@ -16,7 +16,9 @@ def compute_area(coords):
     float
         Signed area of the triangle (positive if nodes are counter-clockwise).
     """
-    raise NotImplementedError
+    return 0.5*np.linalg.det([
+        coords[1]-coords[0], 
+        coord[2]-coords[0]])
 
 
 def compute_B(coords):
