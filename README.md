@@ -15,7 +15,7 @@ developed as part of a class project for UBC Civil 537 (Computation Mechanics).
 + The set-up of Docker and the Git / GitHub followed closely with the provided
   guide. 
 + Instead of Docker desktop, the docker engine and associated tools were
-  installed locally to the student device running the Debian 13 (Bookworm) 
+  installed locally to the student device running the Debian 13 (Trixie) 
   GNU/Linux OS using the corresponding [installation
   guide](https://docs.docker.com/engine/install/debian/).
 + The starter app was successfully launched locally. Deployment to Streamlit
@@ -257,13 +257,15 @@ u(x, y)
     \sum_{n=i,j,k}
     \underbrace{
     \frac{1}{2\Delta}
-    (a_n + b_n x + c_n)}_{N_n} u_n \\
+    (a_n + b_n x + c_n)}_{N_n} u_n 
+    = N_n u_n \\
 v(x, y) 
     &=
     \sum_{n=i,j,k}
     \underbrace{
     \frac{1}{2\Delta}
     (a_n + b_n x + c_n)}_{N_n} v_n
+    = N_n v_n 
 \end{align}
 $$
 
