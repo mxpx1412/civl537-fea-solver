@@ -692,14 +692,13 @@ $$
 \frac{\partial u}{\partial x} \\
 \frac{\partial v}{\partial y}  \\
 \frac{\partial u}{\partial y} 
-    + \frac{\partial v}{\partial x} \\
-\end{Bmatrix} 
-=
+    +\frac{\partial v}{\partial x} \\
+\end{Bmatrix} =
 \begin{Bmatrix} 
 \frac{\partial N_n}{\partial x} u_n \\
 \frac{\partial N_n}{\partial y} v_n \\
 \frac{\partial N_n}{\partial y} u_n 
-    + \frac{\partial N_n}{\partial x} v_n \\
+    +\frac{\partial N_n}{\partial x} v_n \\
 \end{Bmatrix} \\
 \begin{Bmatrix}
 \epsilon_x \\
@@ -731,7 +730,7 @@ v_i \\
 u_j \\
 v_j \\
 u_k \\
-v_k 
+v_k \\
 \end{Bmatrix}}_{\begin{Bmatrix} s \end{Bmatrix}}
 \end{align}
 $$
