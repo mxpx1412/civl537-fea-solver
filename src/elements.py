@@ -45,8 +45,22 @@ def compute_B(coords):
     The coefficients b_i and c_i come from cyclic permutations of the node coordinates.
     Refer to CIVL 537 Lecture Notes, Section 4.
     """
-    raise NotImplementedError
+    x_i, y_i = coords[0]
+    x_j, y_j = coords[1]
+    x_k, y_k = coords[2]
 
+    b_i = y_j - y_k
+    b_j = y_k - y_i
+    b_k = y_i - y_j
+    c_i = x_k - x_j
+    c_j = x_i - x_k
+    c_k = x_j - x_i
+
+    B = np.array([
+        [b_i, 0, b_j, 0, b_k, 0],
+        [0, c_i, 0, c_j, 0, c_k],
+        [c_i, b_i, c_j, b_j, c_k, b_k]]) / (2*compute_area(coords))
+    return B
 
 def compute_D(E, nu, mode="plane_stress"):
     """
@@ -72,8 +86,17 @@ def compute_D(E, nu, mode="plane_stress"):
     Plane strain: eps_zz = 0, eliminate sigma_zz from 3D Hooke's law.
     The resulting D matrices are different. Implement them based on the course notes.
     """
-    raise NotImplementedError
-
+    if mode=="plane_stress":
+        D = (E/(1-nu**2))*np.array([
+            [1, nu, 0],
+            [nu, 1, 0],
+            [0, 0, (1-nu)/2]])
+    elif mode=="plane_strain":
+        D = (E*(1-nu)/((1+nu)*(1-2*nu)))*np.array([
+            [1, nu/(1-nu), 0],
+            [nu/(1-nu), 1, 0],
+            [0, 0, (1-2*nu)/(2*(1-nu))]])
+    return D
 
 def compute_k(coords, D, thickness):
     """

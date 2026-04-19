@@ -258,21 +258,273 @@ u(x, y)
     \underbrace{
     \frac{1}{2\Delta}
     (a_n + b_n x + c_n)}_{N_n} u_n 
-    = N_n u_n \\
+    = \sum_{n=i,j,k} N_n u_n \\
 v(x, y) 
     &=
     \sum_{n=i,j,k}
     \underbrace{
     \frac{1}{2\Delta}
     (a_n + b_n x + c_n)}_{N_n} v_n
-    = N_n v_n 
+    = \sum_{n=i,j,k} N_n v_n \\
+N_n
+    &= \frac{1}{2\Delta} (a_n + b_n + c_n)
 \end{align}
 $$
 
+In matrix form, the ***shape functions*** $\mathbf{N}$ can be written: 
+
+$$
+\begin{align}
+\begin{Bmatrix}
+    u(x, y) \\
+    v(x, y) \\
+\end{Bmatrix}
+&=
+\underbrace{
+\begin{bmatrix}
+    N_i & 0 & N_j & 0 & N_k & 0 \\
+    0 & N_i & 0 & N_j & 0 & N_k \\
+\end{bmatrix}
+}_{\mathbf{N}}
+\underbrace{
+\begin{Bmatrix}
+    u_i \\
+    v_i \\
+    u_j \\
+    v_j \\
+    u_k \\
+    v_k \\
+\end{Bmatrix}
+}_{\mathbf{s}}
+= \mathbf{N}\mathbf{s}
+\end{align}
+$$
+
+Then, we can compute the ***strain-displacement matrix*** $\mathbf{B}$ using
+the definition of the strains: 
+
+$$
+\begin{align}
+    \begin{Bmatrix}
+        \epsilon_x \\
+        \epsilon_y \\
+        \gamma_{xy} \\
+    \end{Bmatrix}
+    &=
+    \begin{Bmatrix}
+        \frac{\partial u}{\partial x} \\
+        \frac{\partial v}{\partial y} \\
+        \frac{\partial u}{\partial y} + 
+        \frac{\partial v}{\partial x} \\
+    \end{Bmatrix}
+    =
+    \begin{Bmatrix}
+        \alpha_2 \\
+        \beta_3 \\
+        \alpha_3 + \beta_2 \\
+    \end{Bmatrix} \\
+    \begin{Bmatrix}
+        \epsilon_x \\
+        \epsilon_y \\
+        \gamma_{xy} \\
+    \end{Bmatrix}
+    &= \frac{1}{2\Delta}
+    \begin{Bmatrix}
+    b_i u_i + b_j u_j + b_k u_k \\
+    c_i v_i + c_j v_j + c_k v_j \\
+    c_i u_i + c_j u_j + c_k u_k + b_i v_i + b_j v_j + b_k v_k \\
+    \end{Bmatrix} \\
+    \begin{Bmatrix}
+        \epsilon_x \\
+        \epsilon_y \\
+        \gamma_{xy} \\
+    \end{Bmatrix}
+    &= 
+    \underbrace{
+    \frac{1}{2\Delta}
+    \begin{bmatrix}
+    b_i & 0 & b_j & 0 & b_k & 0 \\
+    0 & c_i & 0 & c_j & 0 & c_k \\
+    c_i & b_i & c_j & b_j & c_k & b_k \\
+    \end{bmatrix}}_{\mathbf{B}}
+    \begin{Bmatrix}
+    u_i \\
+    v_i \\
+    u_j \\
+    v_j \\
+    u_k \\
+    v_k \\
+    \end{Bmatrix} = \mathbf{B}\mathbf{s} 
+\end{align}
+$$
+
+The above results for $\mathbf{B}$ is used for the element implementation of
+the CSTs.
+
+### Constitutive Matrix
+
+The strains and stresses involved in the strain and stress tensors of 3D solids
+are illustrated as follows:
+
+<p align="center">
+<img 
+    src="./readme_figs/fig_tensor_dirs.png" 
+    alt="Strains and Stresses of a 3D Solid"
+    width=1000px>
+</p>
+
+For an isotropic material in equilibrium, it requires $\tau_{ij}=\tau_{ji}$ for
+the shear stresses and $\epsilon_{ij} = \epsilon_{ji}$ for the shear strains.
+Further, the shear strains are often re-written in terms of ***engineering
+shear strain*** as follows [^citeC2_2Bowers25]:
+
+$$
+\gamma_{ij}=\gamma_{ji} = 2\epsilon_{ij} = 2\epsilon_{ji}
+$$
+
+<p align="center">
+<img 
+    src="./readme_figs/fig_shear_strain.png" 
+    alt="Shear Strain and Engineering Shear Strain"
+    width=500px/>
+</p>
+
+The constitutive relations for an isotropic material are[^citeC3_2Bowers25]:
+
+$$
+\begin{align}
+\epsilon_{ii} 
+&= \frac{\sigma_{ii}}{E} 
+    - \nu \frac{\sigma_{jj}}{E} 
+    - \nu \frac{\sigma_{kk}}{E} \\
+\gamma_{ij}
+&= \frac{\tau_{ij}}{G}
+\end{align}
+$$
+
+Where $E$ is the ***Elastic modulus***, $\nu$ is the ***Poisson's ratio***, and
+$G$ is the ***shear modulus***, which for an isotropic material is:
+
+$$
+\begin{align}
+G &= \frac{E}{2(1+\nu)}
+\end{align}
+$$
+
+In matrix form, we have: 
+
+$$
+\begin{align}
+\begin{Bmatrix}
+    \epsilon_{xx} \\
+    \epsilon_{yy} \\
+    \epsilon_{zz} \\
+    \gamma_{yz} \\
+    \gamma_{xz} \\
+    \gamma_{xy} \\
+\end{Bmatrix}
+&=
+\frac{1}{E}
+\begin{bmatrix}
+    1 & -\nu & -\nu & 0 & 0 & 0 \\
+    -\nu & 1 & -\nu & 0 & 0 & 0 \\
+    -\nu & -\nu & 1 & 0 & 0 & 0 \\
+    0 & 0 & 0 & 2(1+\nu) & 0 & 0 \\
+    0 & 0 & 0 & 0 & 2(1+\nu) & 0 \\
+    0 & 0 & 0 & 0 & 0 & 2(1+\nu) \\
+\end{bmatrix}
+\begin{Bmatrix}
+    \sigma_{xx} \\
+    \sigma_{yy} \\
+    \sigma_{zz} \\
+    \tau_{yz} \\
+    \tau_{xz} \\
+    \tau_{xy} \\
+\end{Bmatrix}
+\end{align}
+$$
+
+Taking the inverse, we will obtain the general constitutive matrix for an
+isotropic 3D material: 
+
+$$
+\begin{align}
+\begin{Bmatrix}
+    \sigma_{xx} \\
+    \sigma_{yy} \\
+    \sigma_{zz} \\
+    \tau_{yz} \\
+    \tau_{xz} \\
+    \tau_{xy} \\
+\end{Bmatrix}
+&=
+\underbrace{
+\frac{E}{(1+\nu)(1-2\nu)}
+\begin{bmatrix}
+    1-\nu & \nu & \nu & 0 & 0 & 0 \\
+    \nu & 1-\nu & \nu & 0 & 0 & 0 \\
+    \nu & \nu & 1-\nu & 0 & 0 & 0 \\
+    0 & 0 & 0 & \frac{1-2\nu}{2} & 0 & 0 \\
+    0 & 0 & 0 & 0 & \frac{1-2\nu}{2} & 0 \\
+    0 & 0 & 0 & 0 & 0 & \frac{1-2\nu}{2} \\
+\end{bmatrix}}_{\mathbf{D}}
+\underbrace{
+\begin{Bmatrix}
+    \epsilon_{xx} \\
+    \epsilon_{yy} \\
+    \epsilon_{zz} \\
+    \gamma_{yz} \\
+    \gamma_{xz} \\
+    \gamma_{xy} \\
+\end{Bmatrix}}_{\mathbf{\epsilon}}
+= \mathbf{D}\mathbf{\epsilon}
+\end{align}
+$$
+
+By setting $\sigma_{zz}=\tau_{yz}=\tau_{xz}=0$, we obtain the ***Plane Stress
+Constitutive Matrix*** as provided in the lecture
+[^citeL6Fahimi26] [^citeC3_2Bowers25]:
+
+$$
+\begin{align}
+\mathbf{D}
+&=
+\frac{E}{1-\nu^2}
+\begin{bmatrix}
+1 & \nu & 0 \\
+\nu & 1 & 0 \\
+0 & 0 & \frac{1-\nu}{2} \\
+\end{bmatrix}
+\end{align}
+$$
+
+On the other hand, by setting $\epsilon_{zz}=\epsilon_{yz}=\epsilon_{xz}=0$,
+the ***Plane Strain Constitutive Matrix*** is obtained:
+
+$$
+\begin{align}
+\mathbf{D}
+&=
+\frac{E(1-\nu)}{(1+\nu)(1-2\nu)}
+\begin{bmatrix}
+1 & \frac{\nu}{1-\nu} & 0 \\
+\frac{\nu}{1-\nu} & 1 & 0 \\
+0 & 0 & \frac{1-2\nu}{2(1-\nu)} \\
+\end{bmatrix}
+\end{align}
+$$
 
 # References
 
 [^citeFrose18]: R. Froese and B. Wetton, "Notes for Math 152: Linear Systems",
     2018.  [Online]. Available
     [https://personal.math.ubc.ca/~karu/m152/notes.pdf](https://personal.math.ubc.ca/~karu/m152/notes.pdf) 
-[^citeL6Fahimi26]: S. Fahimi, "06 - Continuum Finite Elements", 2026.
+[^citeL6Fahimi26]: S. Fahimi. (2026). UBC CIVL 537 Computation Mechanics: "06 -
+    Continuum Finite Elements"
+[^citeC2_2Bowers25]: A. F. Bowers, "Mathematical description of shape changes
+    in solids" in *Applied Mechanics of Solids*, 2025, ch. 2.2. [Online].
+    Available:
+    [https://solidmechanics.org/Text/Chapter2_2/Chapter2_2.php](https://solidmechanics.org/Text/Chapter2_2/Chapter2_2.php)
+[^citeC3_2Bowers25]: A. F. Bowers, "Linear elastic material behavior" in *Applied Mechanics of Solids*, 2025, ch. 3.2. [Online].
+    Available:
+    [https://solidmechanics.org/Text/Chapter3_2/Chapter3_2.php](https://solidmechanics.org/Text/Chapter2_2/Chapter2_2.php)
