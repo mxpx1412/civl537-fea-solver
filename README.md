@@ -161,7 +161,7 @@ $$
     \alpha_1 \\ 
     \alpha_2 \\ 
     \alpha_3 \\
-\end{Bmatrix}}_{\{\alpha\}} \\
+\end{Bmatrix}}_{\begin{Bmatrix}\alpha\end{Bmatrix}} \\
 \begin{Bmatrix}
     v_i \\ 
     v_j \\ 
@@ -179,7 +179,7 @@ $$
     \beta_1 \\ 
     \beta_2 \\ 
     \beta_3 \\
-\end{Bmatrix}}_{\{\beta\}}
+\end{Bmatrix}}_{\begin{Bmatrix}\beta\end{Bmatrix}}
 \end{align}
 $$
 
@@ -296,8 +296,8 @@ $$
     u_k \\
     v_k \\
 \end{Bmatrix}
-}_{\{s\}}
-= [N]\{s\}
+}_{\begin{Bmatrix}s\end{Bmatrix}}
+= [N]\begin{Bmatrix}s\end{Bmatrix}
 \end{align}
 $$
 
@@ -355,7 +355,7 @@ $$
     v_j \\
     u_k \\
     v_k \\
-    \end{Bmatrix} = [B]\{s\} 
+    \end{Bmatrix} = [B]\begin{Bmatrix}s\end{Bmatrix} 
 \end{align}
 $$
 
@@ -477,8 +477,8 @@ $$
     \gamma_{yz} \\
     \gamma_{xz} \\
     \gamma_{xy} \\
-\end{Bmatrix}}_{\{\epsilon\}}
-= [D]\{\epsilon\}
+\end{Bmatrix}}_{\begin{Bmatrix}\epsilon\end{Bmatrix}}
+= [D]\begin{Bmatrix}\epsilon\end{Bmatrix}
 \end{align}
 $$
 
@@ -546,6 +546,209 @@ $$
 $$
 
 Which provides the element stiffness matrix for implementation. 
+
+### Hand Verification Example
+
+The strain-displacement matrix $[B]$ is verified using hand calculation with
+the following points: 
+
+$$
+\begin{align}
+(x_i, y_i) &= (0, 0) \\
+(x_j, y_j) &= (1, 0) \\
+(x_k, y_k) &= (0, 1) 
+\end{align}
+$$
+
+Computing coefficients: 
+
+$$
+\begin{align}
+a_i 
+    &= x_j y_k - x_k y_j = 1 \times 1 - 0 \times 0 = 1 \\
+a_j 
+    &= x_k y_i - x_i y_k = 0 \times 0 - 0 \times 1 = 0 \\
+a_k 
+    &= x_i y_j - x_j y_i = 0 \times 0 - 1 \times 0 = 0 \\
+b_i 
+    &= y_j - y_k = 0 - 1 = -1 \\
+b_j 
+    &= y_k - y_i = 1 - 0 = 1 \\
+b_k 
+    &= y_i - y_j = 0 - 0 \\
+c_i 
+    &= x_k - x_j = 0 - 1 = -1 \\
+c_j 
+    &= x_i - x_k = 0 - 0 = 0 \\
+c_k 
+    &= x_j - x_i = 1 - 0 = 1
+\end{align}
+$$
+
+Compute area:
+
+$$
+\begin{align}
+\Delta
+    &= \frac{1}{2}\det\left(
+    \begin{bmatrix}
+    x_j - x_i & y_j - y_i \\
+    x_k - x_i & y_k - y_i \\
+    \end{bmatrix}
+    \right) \\
+\Delta
+    &= \frac{1}{2}\det\left(
+    \begin{bmatrix}
+    1 & 0 \\
+    0 & 1 \\
+    \end{bmatrix}
+    \right) = \frac{1}{2} \\
+2\Delta
+    &= 1
+\end{align}
+$$
+
+Computing shape functions: 
+
+$$
+\begin{align}
+N_n 
+    &= \frac{1}{2\Delta}(a_n + b_n x + c_n y) \\
+\implies
+N_i 
+    &= 1 - x - y \\
+N_j 
+    &= x \\
+N_k 
+    &= y 
+\end{align}
+$$
+
+Check shape functions:
+
+$$
+\begin{align}
+\sum_{n=i,j,k} N_n 
+    &= 1 - x - y + x + y = 1 \implies \text{ok} \\
+\end{align}
+$$
+
+$$
+\begin{align}
+    N_i(0,0) &= 1 + 0 + 0 = 1 \implies \text{ok} \\
+    N_j(0,0) &= 0 \implies \text{ok} \\
+    N_k(0,0) &= 0 \implies \text{ok} 
+\end{align}
+$$
+
+$$
+\begin{align}
+    N_i(1,0) &= 1 - 1 + 0 = 0 \implies \text{ok} \\
+    N_j(1,0) &= 1 \implies \text{ok} \\
+    N_k(1,0) &= 0 \implies \text{ok} 
+\end{align}
+$$
+
+$$
+\begin{align}
+    N_i(0,1) &= 1 - 0 + 1 = 0 \implies \text{ok} \\
+    N_j(0,1) &= 0 \implies \text{ok} \\
+    N_k(0,1) &= 1 \implies \text{ok} 
+\end{align}
+$$
+
+Differentiate shape functions:
+
+$$
+\begin{align}
+\begin{matrix}
+\frac{\partial N_i}{\partial x}
+    = -1 
+& \frac{\partial N_j}{\partial x}
+    = 1 
+& \frac{\partial N_k}{\partial x}
+    = 0 \\
+\frac{\partial N_i}{\partial y}
+    = -1 
+& \frac{\partial N_j}{\partial y}
+    = 0 
+& \frac{\partial N_k}{\partial y}
+    = 1 \\
+\end{matrix}
+\end{align}
+$$
+
+Compute strain vector and strain-displacement matrix:
+
+$$
+\begin{align}
+\begin{Bmatrix}
+\epsilon_x \\
+\epsilon_y \\
+\gamma_{xy}
+\end{Bmatrix}
+&=
+\begin{Bmatrix}
+\frac{\partial u}{\partial x} \\
+\frac{\partial v}{\partial y}  \\
+\frac{\partial u}{\partial y} 
+    + \frac{\partial v}{\partial x} \\
+\end{Bmatrix} 
+=
+\begin{Bmatrix} 
+\frac{\partial N_n}{\partial x} u_n \\
+\frac{\partial N_n}{\partial y} v_n \\
+\frac{\partial N_n}{\partial y} u_n 
+    + \frac{\partial N_n}{\partial x} v_n \\
+\end{Bmatrix} \\
+\begin{Bmatrix}
+\epsilon_x \\
+\epsilon_y \\
+\gamma_{xy}
+\end{Bmatrix}
+&=
+\begin{Bmatrix}
+-u_i + u_j \\
+-v_i + v_k \\
+-u_i - v_i + v_j + u_k \\
+\end{Bmatrix} \\
+\begin{Bmatrix}
+\epsilon_x \\
+\epsilon_y \\
+\gamma_{xy}
+\end{Bmatrix}
+&=
+\underbrace{
+\begin{bmatrix}
+-1 & 0 & 1 & 0 & 0 & 0 \\
+0 & -1 & 0 & 0 & 0 & 1 \\
+-1 & -1 & 0 & 1 & 1 & 0 \\
+\end{bmatrix}}_{[B]}
+\underbrace{
+\begin{Bmatrix}
+u_i \\
+v_i \\
+u_j \\
+v_j \\
+u_k \\
+v_k 
+\end{Bmatrix}}_{\begin{Bmatrix} s \end{Bmatrix}}
+\end{align}
+$$
+
+Compare with computation results:
+
+```python
+>>> from src.elements import compute_D, compute_B, compute_area, compute_k
+>>> import numpy as np
+>>> coords = np.array([[0, 0], [1, 0], [0, 1]])
+>>> compute_B(coords)
+array([[-1.,  0.,  1.,  0.,  0.,  0.],
+       [ 0., -1.,  0.,  0.,  0.,  1.],
+       [-1., -1.,  0.,  1.,  1.,  0.]])
+```
+
+We see that the hand calculation and the implemented function aligns. 
 
 # References
 
