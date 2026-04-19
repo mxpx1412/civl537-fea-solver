@@ -560,4 +560,4 @@ Which provides the element stiffness matrix for implementation.
     [https://solidmechanics.org/Text/Chapter2_2/Chapter2_2.php](https://solidmechanics.org/Text/Chapter2_2/Chapter2_2.php)
 [^citeC3_2Bowers25]: A. F. Bowers, "Linear elastic material behavior" in *Applied Mechanics of Solids*, 2025, ch. 3.2. [Online].
     Available:
-    [https://solidmechanics.org/Text/Chapter3_2/Chapter3_2.php](https://solidmechanics.org/Text/Chapter2_2/Chapter2_2.php)
+    [https://solidmechanics.org/Text/Chapter3_2/Chapter3_2.php](https://solidmechanics.org/Text/Chapter3_2/Chapter3_2.php)
