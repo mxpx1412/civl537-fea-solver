@@ -18,7 +18,7 @@ def compute_area(coords):
     """
     return 0.5*np.linalg.det([
         coords[1]-coords[0], 
-        coord[2]-coords[0]])
+        coords[2]-coords[0]])
 
 
 def compute_B(coords):
@@ -98,7 +98,7 @@ def compute_D(E, nu, mode="plane_stress"):
             [0, 0, (1-2*nu)/(2*(1-nu))]])
     return D
 
-def compute_k(coords, D, thickness):
+def compute_k(coords, D, thickness=1.0):
     """
     Compute the 6x6 element stiffness matrix for a CST element.
 
@@ -121,4 +121,6 @@ def compute_k(coords, D, thickness):
     Since B is constant over the element, the integral simplifies to
     a single multiplication (no numerical quadrature needed).
     """
-    raise NotImplementedError
+    B = compute_B(coords)
+
+    return np.matmul(np.matmul(B.T, D), B)*thickness*compute_area(coords)

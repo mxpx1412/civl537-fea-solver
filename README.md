@@ -25,9 +25,9 @@ developed as part of a class project for UBC Civil 537 (Computation Mechanics).
 
 ### Area Computation
 
-The signed area of a *parallelogram* spanned by two vectors
-$\mathbf{p}=<p_1,\,p_2>$ and $\mathbf{q}=<q_1,\,q_2>$ sharing a common starting
-point is given by: 
+The signed area of a *parallelogram* spanned by two vectors $\langle p
+\rangle=\langle p_1,p_2\rangle$ and $\langle q \rangle=\langle
+q_1,q_2\rangle$ sharing a common starting point is given by: 
 
 $$
 \begin{align}
@@ -40,11 +40,12 @@ $$
 \end{align}
 $$
 
-Where the area is positive if the shared point, the tip of $\mathbf{p}$ and the
-tip of $\mathbf{q}$ is ordered counterclockwise (i.e. lesser angle from
-$\mathbf{p}$ to $\mathbf{q}$ is counterclockwise), and negative if opposite
-[^citeFrose18]. Then, the signed area of the *triangle* spanned by the two vectors
-is simply half of the above expression. in other words:
+Where the area is positive if the shared point, the tip of $\langle p \rangle$
+and the tip of $\langle q \rangle$ is ordered counterclockwise (i.e. lesser
+angle from $\langle p \rangle$ to $\langle q \rangle$ is counterclockwise), and
+negative if opposite [^citeFrose18]. Then, the signed area of the *triangle*
+spanned by the two vectors is simply half of the above expression. in other
+words:
 
 $$
 \begin{align}
@@ -84,10 +85,10 @@ $$
 \end{align}
 $$
 
-## Shape Functions and Strain Displacement Matrix
+### Shape Functions and Strain Displacement Matrix
 
-The shape functions $\mathbf{N}$ and the strain-displacement matrix
-$\mathbf{B}$ are derived based on the lecture notes [^citeL6Fahimi26]. For the
+The shape functions $[N]$ and the strain-displacement matrix
+$[B]$ are derived based on the lecture notes [^citeL6Fahimi26]. For the
 CST, the nodal displacement DOFs $u$ and $v$ can be written as linear
 combinations of $x$ and $y$:
 
@@ -154,13 +155,13 @@ $$
 1 & x_i & y_i \\
 1 & x_j & y_j \\
 1 & x_k & y_k \\
-\end{bmatrix}}_{\mathbf{A}}
+\end{bmatrix}}_{[A]}
 \underbrace{
 \begin{Bmatrix}
     \alpha_1 \\ 
     \alpha_2 \\ 
     \alpha_3 \\
-\end{Bmatrix}}_{\mathbf{\alpha}} \\
+\end{Bmatrix}}_{\{\alpha\}} \\
 \begin{Bmatrix}
     v_i \\ 
     v_j \\ 
@@ -172,23 +173,23 @@ $$
 1 & x_i & y_i \\
 1 & x_j & y_j \\
 1 & x_k & y_k \\
-\end{bmatrix}}_{\mathbf{A}}
+\end{bmatrix}}_{[A]}
 \underbrace{
 \begin{Bmatrix}
     \beta_1 \\ 
     \beta_2 \\ 
     \beta_3 \\
-\end{Bmatrix}}_{\mathbf{\beta}}
+\end{Bmatrix}}_{\{\beta\}}
 \end{align}
 $$
 
 Solving for the coefficients $\alpha_n$ and $\beta_n$, we first invert the
-matrix $\mathbf{A}$:
+matrix $[A]$:
 
 $$
 \begin{align}
-    \mathbf{A}^{-1}
-    &= \frac{1}{\det\mathbf{A}}
+    [A]^{-1}
+    &= \frac{1}{\det[A]}
     \begin{bmatrix}
         x_j y_k - x_k y_j & x_k y_i - x_i y_k & x_i y_j - x_j y_i \\
         y_j - y_k & y_k - y_i & y_i - y_j \\
@@ -271,7 +272,7 @@ N_n
 \end{align}
 $$
 
-In matrix form, the ***shape functions*** $\mathbf{N}$ can be written: 
+In matrix form, the ***shape functions*** $[N]$ can be written: 
 
 $$
 \begin{align}
@@ -285,7 +286,7 @@ $$
     N_i & 0 & N_j & 0 & N_k & 0 \\
     0 & N_i & 0 & N_j & 0 & N_k \\
 \end{bmatrix}
-}_{\mathbf{N}}
+}_{[N]}
 \underbrace{
 \begin{Bmatrix}
     u_i \\
@@ -295,12 +296,12 @@ $$
     u_k \\
     v_k \\
 \end{Bmatrix}
-}_{\mathbf{s}}
-= \mathbf{N}\mathbf{s}
+}_{\{s\}}
+= [N]\{s\}
 \end{align}
 $$
 
-Then, we can compute the ***strain-displacement matrix*** $\mathbf{B}$ using
+Then, we can compute the ***strain-displacement matrix*** $[B]$ using
 the definition of the strains: 
 
 $$
@@ -346,7 +347,7 @@ $$
     b_i & 0 & b_j & 0 & b_k & 0 \\
     0 & c_i & 0 & c_j & 0 & c_k \\
     c_i & b_i & c_j & b_j & c_k & b_k \\
-    \end{bmatrix}}_{\mathbf{B}}
+    \end{bmatrix}}_{[B]}
     \begin{Bmatrix}
     u_i \\
     v_i \\
@@ -354,11 +355,11 @@ $$
     v_j \\
     u_k \\
     v_k \\
-    \end{Bmatrix} = \mathbf{B}\mathbf{s} 
+    \end{Bmatrix} = [B]\{s\} 
 \end{align}
 $$
 
-The above results for $\mathbf{B}$ is used for the element implementation of
+The above results for $[B]$ is used for the element implementation of
 the CSTs.
 
 ### Constitutive Matrix
@@ -467,7 +468,7 @@ $$
     0 & 0 & 0 & \frac{1-2\nu}{2} & 0 & 0 \\
     0 & 0 & 0 & 0 & \frac{1-2\nu}{2} & 0 \\
     0 & 0 & 0 & 0 & 0 & \frac{1-2\nu}{2} \\
-\end{bmatrix}}_{\mathbf{D}}
+\end{bmatrix}}_{[D]}
 \underbrace{
 \begin{Bmatrix}
     \epsilon_{xx} \\
@@ -476,8 +477,8 @@ $$
     \gamma_{yz} \\
     \gamma_{xz} \\
     \gamma_{xy} \\
-\end{Bmatrix}}_{\mathbf{\epsilon}}
-= \mathbf{D}\mathbf{\epsilon}
+\end{Bmatrix}}_{\{\epsilon\}}
+= [D]\{\epsilon\}
 \end{align}
 $$
 
@@ -487,7 +488,7 @@ Constitutive Matrix*** as provided in the lecture
 
 $$
 \begin{align}
-\mathbf{D}
+[D]
 &=
 \frac{E}{1-\nu^2}
 \begin{bmatrix}
@@ -503,7 +504,7 @@ the ***Plane Strain Constitutive Matrix*** is obtained:
 
 $$
 \begin{align}
-\mathbf{D}
+[D]
 &=
 \frac{E(1-\nu)}{(1+\nu)(1-2\nu)}
 \begin{bmatrix}
@@ -513,6 +514,38 @@ $$
 \end{bmatrix}
 \end{align}
 $$
+
+The above matrices were implemented accordingly. 
+
+### Stiffness Matrix
+
+Based on the principle of virtual work formulation, the element stiffness
+matrix $[k_e]$ is:
+
+$$
+\begin{align}
+[k_e] 
+&= \int_{V_e} [B]^T [D] [B] dV \\
+[k_e] 
+&= \iiint [B]^T [D] [B] dx dy dz
+\end{align}
+$$
+
+For the CST element, based on the earlier derived $[B]$ and $[D]$, we see that
+they do not depend on the variables of integration (only pre-defined nodal
+coordinates and material properties). If the thickness of the elemnt is $h$,
+then the expression simplifies to:
+
+$$
+\begin{align}
+[k_e] 
+&= [B]^T [D] [B] h \iint dx dy \\
+[k_e] 
+&= [B]^T [D] [B] h \Delta
+\end{align}
+$$
+
+Which provides the element stiffness matrix for implementation. 
 
 # References
 

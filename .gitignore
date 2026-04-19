@@ -13,3 +13,4 @@ Thumbs.db
 .streamlit/secrets.toml
 AI_Usage_Summary_Example.md
 .localwork/
+*/*test_outputs*/
