@@ -61,7 +61,7 @@ def generate_rect_mesh(L, h, nx, ny):
     return (nodes, elements, boundary_tags)
 
 
-def generate_plate_with_hole_mesh(W, H, R, n_radial, n_angular, p=1):
+def generate_plate_with_hole_mesh(W, H, R, n_radial, n_angular, rho_mh=1.0):
     """
     Generate a triangular mesh for a rectangular plate [0, W] x [0, H]
     with a circular hole of radius R centered at the origin.
@@ -81,6 +81,9 @@ def generate_plate_with_hole_mesh(W, H, R, n_radial, n_angular, p=1):
         Number of element divisions in the radial direction (from hole to edge).
     n_angular : int
         Number of element divisions in the angular direction (quarter circle).
+    rho_mh : float
+        Mesh density factor near the hole (1 = not denser near the hole, >1
+        denser near the hole).
 
     Returns
     -------
@@ -112,6 +115,55 @@ def generate_plate_with_hole_mesh(W, H, R, n_radial, n_angular, p=1):
     pre-generated mesh from data/plate_with_hole_mesh.npz. This lets you
     proceed with the rest of the project while you work on your own mesher.
     """
+
+    nr_nodes = n_radial + 1
+    na_nodes = n_angular + 1
+    n_nodes = nr_nodes * na_nodes
+
+    theta_0 = 0.0
+    theta_diag = np.arctan(H/W)
+    theta_f = np.pi/2
+
+    # Split the angular divisions relative to the size of H vs. W
+    na_height = max(1, np.round(n_angular*H/(W+H)))
+    na_width = n_angular - na_height
+    dtheta_height = (theta_diag - theta_0)/na_height
+    dtheta_width = (theta_f - theta_diag)/na_width
+
+    theta_array = np.array([
+        (dtheta_height*j_theta if j_theta <= na_height
+         else theta_diag + dtheta_width*(j_theta - na_height))
+        for j_theta in range(na_nodes)])
+
+    nodes_polar = np.array([(
+        (R + ((i_r/n_radial)**rho_mh)*(
+            -R + (
+                W/np.cos(theta_j) if theta_j < theta_diag
+                else H/np.sin(theta_j)))),
+        theta_j) for theta_j in theta_array for i_r in range(nr_nodes)])
+
+    # Map from polar to Cartesian
+    nodes = np.array([
+        ((0.0 if theta_j == theta_f else r_i*np.cos(theta_j)), r_i*np.sin(theta_j))
+        for r_i, theta_j in zip(nodes_polar[:,0], nodes_polar[:,1])])
+
+    elements = []
+    for row in range(na_nodes-1):
+        for col in range(nr_nodes-1):
+            i = nr_nodes*row + col
+            j = i + 1
+            k = i + nr_nodes
+            l = k + 1
+            elements += [[i, j, k], [l, k, j]]
+    elements = np.array(elements)
+
+    boundary_tags = {
+        "hole" : [n for n in range(n_nodes) if nodes_polar[n,0] == R],
+        "right" : [n for n in range(n_nodes) if nodes[n,0] == W],
+        "sym_x" : [n for n in range(n_nodes) if nodes[n,1] == 0],
+        "sym_y" : [n for n in range(n_nodes) if nodes[n,0] == 0.0],
+    }
+
     return (nodes, elements, boundary_tags)
 
 def load_fallback_hole_mesh(filepath=None):
