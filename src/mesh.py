@@ -32,10 +32,36 @@ def generate_rect_mesh(L, h, nx, ny):
         - 'fixed': list of node indices on the x=0 boundary (cantilever root)
         - 'loaded': list of node indices on the x=L boundary (cantilever tip)
     """
-    raise NotImplementedError
+    nx_nodes = nx + 1
+    ny_nodes = ny + 1
+    n_nodes = nx_nodes * ny_nodes
+
+    dx = L / nx
+    dy = h / ny
+
+    nodes = np.array([
+        (i_x*dx, j_y*dy)
+        for j_y in range(ny_nodes) for i_x in range(nx_nodes)])
+
+    elements = []
+    for row in range(ny_nodes-1):
+        for col in range(nx_nodes-1):
+            i = nx_nodes*row + col
+            j = i + 1
+            k = i + nx_nodes
+            l = k + 1
+
+            elements += [[i, j, k], [l, k, j]]
+    elements = np.array(elements)
+
+    boundary_tags = {
+        "fixed" : [n for n in range(n_nodes) if nodes[n][0] == 0],
+        "loaded" : [n for n in range(n_nodes) if nodes[n][0] == L]}
+
+    return (nodes, elements, boundary_tags)
 
 
-def generate_plate_with_hole_mesh(W, H, R, n_radial, n_angular):
+def generate_plate_with_hole_mesh(W, H, R, n_radial, n_angular, p=1):
     """
     Generate a triangular mesh for a rectangular plate [0, W] x [0, H]
     with a circular hole of radius R centered at the origin.
@@ -86,8 +112,7 @@ def generate_plate_with_hole_mesh(W, H, R, n_radial, n_angular):
     pre-generated mesh from data/plate_with_hole_mesh.npz. This lets you
     proceed with the rest of the project while you work on your own mesher.
     """
-    raise NotImplementedError
-
+    return (nodes, elements, boundary_tags)
 
 def load_fallback_hole_mesh(filepath=None):
     """
