@@ -785,9 +785,11 @@ applied *for each element*:
    index mapping of $\mathrm{gl}(\mathrm{el})$, add the entries in the element
    stiffness matrix to the global stiffness matrix (where subscript $r$, $c$
    means DOF indices for the row and column respectively).
-   $$ 
-   [K_g](\mathrm{gl}(\mathrm{el}_r),\mathrm{gl}(\mathrm{el}_c)) {+=} [k_e](\mathrm{el}_r, \mathrm{el}_c)
-   $$
+
+$$ 
+[K_g](\mathrm{gl}(\mathrm{el}_r),\mathrm{gl}(\mathrm{el}_c)) {+=}
+[k_e](\mathrm{el}_r, \mathrm{el}_c)
+$$
 
 # References
 
