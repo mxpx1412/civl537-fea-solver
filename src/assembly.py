@@ -28,8 +28,27 @@ def assemble_K(nodes, elements, D, thickness):
     For each element, extract the 6 global DOF indices from the 3 node indices,
     then scatter the 6x6 element stiffness into the global matrix.
     """
-    raise NotImplementedError
+    n_nodes = nodes.shape[0]
+    n_dof = 2*n_nodes
+    K = lil_matrix((n_dof, n_dof))
 
+    for element in elements:
+        coords = nodes[element]
+        n_i, n_j, n_k = element
+
+        k_e = compute_k(coords, D, thickness)
+        gl = {
+            0 : 2*n_i,
+            1 : 2*n_i+1,
+            2 : 2*n_j,
+            3 : 2*n_j+1,
+            4 : 2*n_k,
+            5 : 2*n_k+1}
+        for el_r in range(k_e.shape[0]):
+            for el_c in range(k_e.shape[1]):
+                K[gl[el_r], gl[el_c]] += k_e[el_r, el_c]
+
+    return K.tocsr()
 
 def assemble_R_parabolic_shear(nodes, loaded_nodes, P, h):
     """

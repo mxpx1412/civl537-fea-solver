@@ -749,6 +749,46 @@ array([[-1.,  0.,  1.,  0.,  0.,  0.],
 
 We see that the hand calculation and the implemented function aligns. 
 
+## Part 3 - Meshing
+
+## Part 4 - Global Assembly
+
+### Global Stiffness Matrix
+
+There are two DOFs per global node (before applying B.C.s). A simple global DOF
+indexing scheme is adopted, where for each global node number $n$, the
+corresponding DOF indices are:
+
++ For horizontal displacement: $2n$
++ For the vertical displacement: $2n+1$
+
+The global node indices of each element is earlier stored in `elements`. If an
+element has vertices at nodes $n_i$, $n_j$ and $n_k$ in sequence, the
+element-to-global DOF indices will be mapped as:
+
+| Element DOF Index $\mathrm{el}$ | Global DOF Index $\mathrm{gl}$ | DOF Description             |
+| -------                         | --------                       | ------                      |
+| $0$                             | $2n_i$                         | Horizontal DOF at i-th Node |
+| $1$                             | $2n_i+1$                       | Vertical DOF at i-th Node   |
+| $2$                             | $2n_j$                         | Horizontal DOF at j-th Node |
+| $3$                             | $2n_j+1$                       | Vertical DOF at j-th Node   |
+| $4$                             | $2n_k$                         | Horizontal DOF at k-th Node |
+| $5$                             | $2n_k+1$                       | Vertical DOF at k-th Node   |
+
+So to assemble the global stiffness matrix $[K_g]$, the following procedure is
+applied *for each element*:
+
+1. Get the coordinates for the element's nodes $n_i$, $n_j$, $n_k$.
+2. Construct the element stiffness matrix $[k_e]$ using the coordinates at
+   nodes $n_i$, $n_j$, $n_k$. 
+3. Iterate over the element stiffness matrix rows and columns. Using the above
+   index mapping of $\mathrm{gl}(\mathrm{el})$, add the entries in the element
+   stiffness matrix to the global stiffness matrix (where subscript $r$, $c$
+   means DOF indices for the row and column respectively).
+   $$ 
+   [K_g](\mathrm{gl}(\mathrm{el}_r),\mathrm{gl}(\mathrm{el}_c)) {+=} [k_e](\mathrm{el}_r, \mathrm{el}_c)
+   $$
+
 # References
 
 [^citeFrose18]: R. Froese and B. Wetton, "Notes for Math 152: Linear Systems",
