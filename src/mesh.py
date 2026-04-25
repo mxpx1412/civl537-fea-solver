@@ -40,7 +40,7 @@ def generate_rect_mesh(L, h, nx, ny):
     dy = h / ny
 
     nodes = np.array([
-        (i_x*dx, j_y*dy)
+        (i_x*dx, -h/2 + j_y*dy)
         for j_y in range(ny_nodes) for i_x in range(nx_nodes)])
 
     elements = []

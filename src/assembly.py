@@ -34,16 +34,16 @@ def assemble_K(nodes, elements, D, thickness):
 
     for element in elements:
         coords = nodes[element]
-        n_i, n_j, n_k = element
+        i, j, k = element
 
         k_e = compute_k(coords, D, thickness)
         gl = {
-            0 : 2*n_i,
-            1 : 2*n_i+1,
-            2 : 2*n_j,
-            3 : 2*n_j+1,
-            4 : 2*n_k,
-            5 : 2*n_k+1}
+            0 : 2*i,
+            1 : 2*i+1,
+            2 : 2*j,
+            3 : 2*j+1,
+            4 : 2*k,
+            5 : 2*k+1}
         for el_r in range(k_e.shape[0]):
             for el_c in range(k_e.shape[1]):
                 K[gl[el_r], gl[el_c]] += k_e[el_r, el_c]
@@ -81,7 +81,34 @@ def assemble_R_parabolic_shear(nodes, loaded_nodes, P, h):
     where N_a and N_b are the linear (1D) shape functions along the edge.
     Verify: R.sum() should equal P (global force equilibrium).
     """
-    raise NotImplementedError
+
+    loaded_nodes = np.array(loaded_nodes)
+    loaded_nodes = [
+        int(ind) for ind in list(
+            loaded_nodes[nodes[loaded_nodes][:,1].argsort()[::-1]])]
+
+    n_dof = 2*nodes.shape[0]
+
+    R = np.zeros(shape=(n_dof,))
+
+    t_y = lambda y : (3*P/(2*h))*(1-4*(y**2)/(h**2))
+    xi_1, xi_2 = np.array([1.0, -1.0])/np.sqrt(3.0)
+    R = np.zeros(shape=(n_dof,))
+
+    for i, k in zip(loaded_nodes[:-1], loaded_nodes[1:]):
+        y_i, y_k = nodes[[i, k],1]
+        y = lambda xi : 0.5*((y_i + y_k) + (y_i - y_k)*xi)
+
+        f = lambda xi : np.array([
+            (1 + xi)*t_y(y(xi)),
+            (1 - xi)*t_y(y(xi))])
+
+        f_syi, f_syk = (0.25)*(y_i-y_k)*(f(xi_1) + f(xi_2))
+
+        R[2*i + 1] += f_syi
+        R[2*k + 1] += f_syk
+
+    return R
 
 
 def assemble_R_uniform_tension(nodes, loaded_nodes, sigma_inf, thickness):
@@ -102,4 +129,19 @@ def assemble_R_uniform_tension(nodes, loaded_nodes, sigma_inf, thickness):
     -------
     R : ndarray, shape (n_dof,)
     """
-    raise NotImplementedError
+    loaded_nodes = np.array(loaded_nodes)
+    loaded_nodes = [
+        int(ind) for ind in list(
+            loaded_nodes[nodes[loaded_nodes][:,1].argsort()[::-1]])]
+
+    n_dof = 2*nodes.shape[0]
+
+    R = np.zeros(shape=(n_dof,))
+
+    for i, k in zip(loaded_nodes[:-1], loaded_nodes[1:]):
+        y_i, y_k = nodes[[i, k],1]
+        f_sxi, f_sxk = (thickness*(y_i-y_k)*sigma_inf/2)*np.array([1, 1])
+        R[2*i + 1] += f_sxi
+        R[2*k + 1] += f_sxk
+
+    return R

@@ -258,17 +258,17 @@ u(x, y)
     \sum_{n=i,j,k}
     \underbrace{
     \frac{1}{2\Delta}
-    (a_n + b_n x + c_n)}_{N_n} u_n 
+    (a_n + b_n x + c_n y)}_{N_n} u_n 
     = \sum_{n=i,j,k} N_n u_n \\
 v(x, y) 
     &=
     \sum_{n=i,j,k}
     \underbrace{
     \frac{1}{2\Delta}
-    (a_n + b_n x + c_n)}_{N_n} v_n
+    (a_n + b_n x + c_n y)}_{N_n} v_n
     = \sum_{n=i,j,k} N_n v_n \\
 N_n
-    &= \frac{1}{2\Delta} (a_n + b_n + c_n)
+    &= \frac{1}{2\Delta} (a_n + b_n x + c_n y)
 \end{align}
 $$
 
@@ -533,15 +533,15 @@ $$
 
 For the CST element, based on the earlier derived $[B]$ and $[D]$, we see that
 they do not depend on the variables of integration (only pre-defined nodal
-coordinates and material properties). If the thickness of the elemnt is $h$,
+coordinates and material properties). If the thickness of the elemnt is $t_h$,
 then the expression simplifies to:
 
 $$
 \begin{align}
 [k_e] 
-&= [B]^T [D] [B] h \iint dx dy \\
+&= [B]^T [D] [B] t_h \iint dx dy \\
 [k_e] 
-&= [B]^T [D] [B] h \Delta
+&= [B]^T [D] [B] t_h \Delta
 \end{align}
 $$
 
@@ -751,6 +751,173 @@ We see that the hand calculation and the implemented function aligns.
 
 ## Part 3 - Meshing
 
+### Rectangular Mesh
+
+The rectangular mesh is constructed as follows. Firstly, the number of nodes
+are computed based on the number of divisions $n_x$ and $n_y$.
+
+$$
+\begin{align}
+n_{x,nodes} &= n_x + 1 \\
+n_{y,nodes} &= n_y + 1 \\
+\end{align}
+$$
+
+There will be $n_{y,nodes}$ rows and $n_{x,nodes}$ columns of nodes. The change
+of $\Delta x$ and $\Delta y$ between divisions along the rows and columns are
+respectively:
+
+$$
+\begin{align}
+\Delta x &= \frac{L}{n_x} \\
+\Delta y &= \frac{h}{n_y}
+\end{align}
+$$
+
+The nodal coordinates are incremented using $\Delta x$ and $\Delta y$. 
+The nodes start from the bottom left, increasing by $\Delta x$ horizontally
+rightward across the columns, until the end of the row is reached. Then the
+process repeats starting from the leftmost node of the next row at $\Delta y$
+above. 
+
+After the nodes are created, the elements are constructed by iterating over the
+leftmost node to the 2nd rightmost node at each row, over all rows except the
+very last row. For every node $n$ iterated, the corner indices of the rectangle
+bounding the CSTs are calculated: 
+
+$$
+\begin{align}
+i &:= n \\
+j &:= i + 1 \\
+k &:= i + n_{x,nodes} \\
+l &:= k + 1
+\end{align}
+$$
+
+From these indices, two new elements are constructed with nodes in
+counter-clockwise order:
+
++ The new $(m)$-th element has nodes (in order): $[i, j, k]$
++ The new $(m+1)$-th element has nodes (in order): $[l, k, j]$
+
+The element index $m$ starts at $0$ and increments by $2$ after moving to a new
+node. The element construction process is illustrated below.
+
+<p align="center">
+<img 
+    src="./readme_figs/fig_rectangular_mesh.png" 
+    alt="Element construction process"
+    width=1200px/>
+</p>
+
+Finally, the boundary tags are assigned by filtering for nodes at the fixed
+edge $x=0$ and free edge $x=L$.
+
+### Plate with Hole Mesh
+
+The plate with hole mesh is first constructed in Polar coordinates then mapped
+to the Cartesian coordinates. Given $n_r$ radial divisions and $n_a$ angular
+divisions, there will be $n_r + 1$ rings and $n_a + 1$ rays of nodes. 
+
+Given plate half-width $W$ and height $H$, the angle of the diagonal is: 
+
+$$
+\begin{align}
+\theta_{diag} &= \arctan\left({\frac{H}{W}}\right)
+\end{align}
+$$
+
+To ensure the diagonal aligns with one of the ray of the mesh, the angular
+increments $\Delta\theta$ will vary as follows:
+
+$$
+\begin{align}
+\Delta \theta &= \Delta\theta(\theta) = 
+\begin{cases}
+    \frac{\theta_{diag}}{n_{a,height}} & \theta < \theta_{diag} \\
+    \frac{\pi/2 - \theta_{diag}}{n_{a,width}} & \theta < \theta_{diag} \\
+\end{cases}
+\end{align}
+$$
+
+Where $n_{a,height}$ and $n_{a,width}$ are the number of angular divisions
+along the height edge ($y \in [0, H]$) and width edge ($x \in [0, W]$)
+respectively:
+
+$$
+\begin{align}
+n_{a,height} &= \max\left[
+    1, \mathrm{round}\left(\frac{H}{H+W}\right) \right] \\
+n_{a,width} &= n_a - n_{a,height}
+\end{align}
+$$
+
+The above attempts to split the number of angular divisions proportional to the
+relative magnitude of $H$ against $W$, such that there will not be too many
+angular divisions over a short height and vice versa. Using the above
+increments, the array of $\theta_j$ values from $0$ to $\pi/2$ for the nodes
+are computed. 
+
+The radial coordinates can be expressed as a function of the angle $\theta$. At
+the inner edge, the radial function is constant over all angles and is equal to
+the radius of the hole $R$: 
+
+$$
+\begin{align}
+r_{in}(\theta) &= R
+\end{align}
+$$
+
+At the outer edge, $r$ is constrained by constant $x=W=r\cos\theta$ or
+constant $y=H=r\sin\theta$ over the angles $\theta$, depending on whether the
+angle is less or greater than the diagonal angle:
+
+$$
+\begin{align}
+r_{out}(\theta) &= 
+\begin{cases}
+    \frac{W}{\cos\theta} & \theta \leq \theta_{diag} \\    
+    \frac{H}{\sin\theta} & \theta > \theta_{diag} \\    
+\end{cases}
+\end{align}
+$$
+
+In between the inner and outer edge, the radial function is interpolated
+depending on the radial increment $i_r\in[0, n_r+1]$ for each $\theta_j$:
+
+$$
+\begin{align}
+r(i_r, \theta_j) &= 
+    \left(\frac{i_r}{n_r}\right)^{\rho_{mh}}\times (
+    r_{out}(\theta_j) - r_{in}(\theta_j)) + r_{in}(\theta_j)\\
+r(i_r, \theta_j) &= 
+    \left(\frac{i_r}{n_r}\right)^{\rho_{mh}}\times (
+    r_{out}(\theta_j) - R) + R
+\end{align}
+$$
+
+Where $\rho_{mh}$ is a parameter to adjust mesh density depending on if the
+increment is close to/away from the hole. If $\rho_{mh}=1$, the interpolation
+across the radial direction is linear, and the mesh will be similarly dense
+throughout the plate. If $\rho_{mh}>1$, the radial increments will be larger
+farther away from the hole, and so the mesh will be denser near the hole and
+sparser away form it. Using the above formulation, the nodes in polar
+coordinates are computed across the radial and angular directions. 
+
+After computing all nodes in polar coordinates $(r(i_r, \theta_j), \theta_j)$,
+they are mapped back to Cartesian coordinates:
+
+$$
+\begin{align}
+    x &= r\cos \theta \\
+    y &= r\sin \theta \\
+\end{align}
+$$
+
+Finally, the element construction proceeds similarly to the rectangular mesh
+case. Instead of horizontal rows and vertical columns, the process is applied
+across radial rays and across angular rings. 
+
 ## Part 4 - Global Assembly
 
 ### Global Stiffness Matrix
@@ -763,24 +930,24 @@ corresponding DOF indices are:
 + For the vertical displacement: $2n+1$
 
 The global node indices of each element is earlier stored in `elements`. If an
-element has vertices at nodes $n_i$, $n_j$ and $n_k$ in sequence, the
+element has vertices at nodes $i$, $j$ and $k$ in sequence, the
 element-to-global DOF indices will be mapped as:
 
 | Element DOF Index $\mathrm{el}$ | Global DOF Index $\mathrm{gl}$ | DOF Description             |
 | -------                         | --------                       | ------                      |
-| $0$                             | $2n_i$                         | Horizontal DOF at i-th Node |
-| $1$                             | $2n_i+1$                       | Vertical DOF at i-th Node   |
-| $2$                             | $2n_j$                         | Horizontal DOF at j-th Node |
-| $3$                             | $2n_j+1$                       | Vertical DOF at j-th Node   |
-| $4$                             | $2n_k$                         | Horizontal DOF at k-th Node |
-| $5$                             | $2n_k+1$                       | Vertical DOF at k-th Node   |
+| $0$                             | $2i$                         | Horizontal DOF at i-th Node |
+| $1$                             | $2i+1$                       | Vertical DOF at i-th Node   |
+| $2$                             | $2j$                         | Horizontal DOF at j-th Node |
+| $3$                             | $2j+1$                       | Vertical DOF at j-th Node   |
+| $4$                             | $2k$                         | Horizontal DOF at k-th Node |
+| $5$                             | $2k+1$                       | Vertical DOF at k-th Node   |
 
 So to assemble the global stiffness matrix $[K_g]$, the following procedure is
 applied *for each element*:
 
-1. Get the coordinates for the element's nodes $n_i$, $n_j$, $n_k$.
+1. Get the coordinates for the element's nodes $i$, $j$, $k$.
 2. Construct the element stiffness matrix $[k_e]$ using the coordinates at
-   nodes $n_i$, $n_j$, $n_k$. 
+   nodes $i$, $j$, $k$. 
 3. Iterate over the element stiffness matrix rows and columns. Using the above
    index mapping of $\mathrm{gl}(\mathrm{el})$, add the entries in the element
    stiffness matrix to the global stiffness matrix (where subscript $r$, $c$
@@ -790,6 +957,291 @@ $$
     [K_g] (\mathrm{gl}(\mathrm{el}_r),\mathrm{gl}(\mathrm{el}_c)) {+=}
     [k_e] (\mathrm{el}_r, \mathrm{el}_c)
 $$
+
+### Parabolic Shear Load Vector
+
+For a given CST element on the boundary, the edge with the applied load has
+constant $x = L$. Accounting for the meshing scheme previously and adapting to
+the shape function's $i$, $j$, $k$ indices ordering, the shape function
+coefficients for the boundary elements are computed:
+
+$$
+\begin{align}
+    \begin{bmatrix}
+        x_j y_k - x_k y_j & x_k y_i - x_i y_k & x_i y_j - x_j y_i \\
+        y_j - y_k & y_k - y_i & y_i - y_j \\
+        x_k - x_j & x_i - x_k & x_j - x_i \\
+    \end{bmatrix} &= 
+    \begin{bmatrix}
+        x_j y_k - L y_j & L y_i - L y_k & L y_j - x_j y_i \\
+        y_j - y_k & y_k - y_i & y_i - y_j \\
+        L - x_j & L - L & x_j - L \\
+    \end{bmatrix} = 
+    \begin{bmatrix}
+        a_i & a_j & a_k \\
+        b_i & b_j & b_k \\
+        c_i & c_j & c_k \\
+    \end{bmatrix}
+\end{align}
+$$
+
+<p align="center">
+<img 
+    src="./readme_figs/fig_load_int_elem.png" 
+    alt="Boundary Element where Load is Applied"
+    width=500px/>
+</p>
+
+Insert the coefficients to the shape functions and evaluate at the boundary: 
+
+$$
+\begin{align}
+\Delta
+    &= \frac{1}{2}\det\left(
+    \begin{bmatrix}
+    x_j - x_i & y_j - y_i \\
+    x_k - x_i & y_k - y_i \\
+    \end{bmatrix}
+    \right) \\
+\Delta
+    &= \frac{1}{2}\det\left(
+    \begin{bmatrix}
+    x_j - L & y_j - y_i \\
+    L - L & y_k - y_i \\
+    \end{bmatrix}
+    \right) \\
+\Delta
+    &= \frac{1}{2} (L - x_j) (y_i - y_k) \\
+\end{align}
+$$
+
+$$
+\begin{align}
+\end{align}
+$$
+
+$$
+\begin{align}
+    N_i(L, y)
+        &= \frac{1}{2\Delta} \left( a_i + b_i L + c_i y \right)\\
+    N_i(L, y)
+        &= \frac{1}{2\Delta} \left( x_j y_k - L y_j + y_j L - y_k L + Ly - x_j y \right) \\
+    N_i(L, y)
+        &= \frac{1}{2\Delta}  (L - x_j) (y - y_k) \\
+    N_i(L, y)
+        &= \frac{y - y_k}{y_i - y_k}
+\end{align}
+$$
+
+$$
+\begin{align}
+    N_j(L, y)
+        &= \frac{1}{2\Delta} \left( a_j + b_j L + c_j y \right)\\
+    N_j(L, y)
+        &= \frac{1}{2\Delta} \left( Ly_i - Ly_k + y_k L - y_i L + 0 \right) \\
+    N_j(L, y)
+        &= 0
+\end{align}
+$$
+
+$$
+\begin{align}
+    N_k(L, y)
+        &= \frac{1}{2\Delta} \left( a_k + b_k L + c_k y \right)\\
+    N_k(L, y)
+        &= \frac{1}{2\Delta} \left( Ly_j - x_j y_i + L y_i - L y_j + x_j y - L y\right)\\
+    N_k(L, y)
+        &= \frac{1}{2\Delta} (L - x_j) (y_i - y) \\
+    N_k(L, y)
+        &= \frac{y_i - y}{y_i - y_k}
+\end{align}
+$$
+
+So together, the shape functions along the loaded edge are: 
+
+$$
+\begin{align}
+N_i(L, y)
+    &= \frac{y-y_k}{y_i-y_k} \\
+N_j(L, y)
+    &= 0 \\
+N_k(L, y)
+    &= \frac{y_i-y}{y_i-y_k} \\
+[N](L, y)
+    &=
+    \frac{1}{y_i - y_k}
+    \begin{bmatrix}
+    y-y_k & 0 & 0 & 0 & y_i-y & 0 \\
+    0 & y-y_k & 0 & 0 & 0 & y_i-y \\
+    \end{bmatrix}
+\end{align}
+$$
+
+The consistent load vector for the individual CST is therefore
+[^citeL7Fahimi26] (note that in our meshing scheme we have $y_i > y_k$):
+
+$$
+\begin{align}
+\begin{Bmatrix} 
+    f_s 
+\end{Bmatrix} 
+    &= \int_0^{t_h} \int_{y_k}^{y_i} [N]^T (L, y) 
+        \begin{Bmatrix}
+            t(y)
+        \end{Bmatrix} dy dz \\
+\begin{Bmatrix} 
+    f_s 
+\end{Bmatrix} 
+    &= 
+\frac{t_h}{y_i - y_k}
+    \int_{y_k}^{y_i}
+        \begin{bmatrix}
+            y-y_k & 0 \\
+            0 & y-y_k \\
+            0 & 0 \\
+            0 & 0 \\
+            y_i-y & 0 \\
+            0 & y_i-y \\
+        \end{bmatrix}
+        \begin{Bmatrix}
+            0 \\
+            t_y (y)
+        \end{Bmatrix} dy \\
+\begin{Bmatrix} 
+    f_s 
+\end{Bmatrix} 
+    &= 
+\frac{t_h}{y_i - y_k}
+    \int_{y_k}^{y_i}
+        \begin{Bmatrix}
+            0 \\
+            (y-y_k) t_y (y) \\
+            0 \\
+            0 \\
+            0 \\
+            (y_i-y) t_y (y) \\
+        \end{Bmatrix} dy 
+\end{align}
+$$
+
+To allow for Gaussian quadrature, transform the coordinates to $\xi$, where
+we have $y=y_k\implies \xi=-1$ and $y=y_i\implies \xi=1$. 
+
+$$
+\begin{align}
+    y &= \frac{1}{2} \left[(y_k + y_i) - (y_k - y_i)\xi\right] \\
+    \xi &= \frac{(y_k + y_i)-2y}{y_k - y_i} \\
+\end{align}
+$$
+
+To adjust the limits of integration: 
+$$
+\begin{align}
+\frac{dy}{d\xi}
+    &= \frac{-(y_k - y_i)}{2} \\
+dy
+    &= \frac{-(y_k - y_i)}{2} d\xi
+\end{align}
+$$
+
+So we can write: 
+$$
+\begin{align}
+\begin{Bmatrix} 
+    f_s 
+\end{Bmatrix} 
+    &= 
+\frac{t_h}{y_i - y_k}
+    \int_{-1}^{1}
+        \begin{Bmatrix}
+            0 \\
+            \frac{1}{2}[(y_i-y_k) - (y_k - y_i) \xi] t_y (y(\xi)) \\
+            0 \\
+            0 \\
+            0 \\
+            -\frac{1}{2}[-(y_i-y_k) - (y_k - y_i) \xi] t_y (y(\xi)) \\
+        \end{Bmatrix} \cdot \frac{-(y_k-y_i)}{2} d\xi \\
+\begin{Bmatrix} 
+    f_s 
+\end{Bmatrix} 
+    &= 
+\frac{t_h(y_i-y_k)}{4}
+    \int_{-1}^{1}
+        \begin{Bmatrix}
+            0 \\
+            (1+\xi) t_y (y(\xi)) \\
+            0 \\
+            0 \\
+            0 \\
+            (1-\xi) t_y (y(\xi)) \\
+        \end{Bmatrix} d\xi
+\end{align}
+$$
+
+Using Gaussian Quadrature for 3rd degree polynomial (expression with $\xi$
+multiplied to expression with $\xi^2$ in $t_y(y(\xi))$, we have: 
+
+$$
+\begin{align}
+\begin{Bmatrix} 
+    f_s 
+\end{Bmatrix} 
+    &= 
+\frac{t_h(y_i-y_k)}{4} \times
+    \sum_{\xi_m = \frac{1}{\sqrt{3}}, \frac{-1}{\sqrt{3}}}
+        \begin{Bmatrix}
+            0 \\
+            (1+\xi_m) t_y (y(\xi_m)) \\
+            0 \\
+            0 \\
+            0 \\
+            (1-\xi_m) t_y (y(\xi_m)) \\
+        \end{Bmatrix} 
+\end{align}
+$$
+
+The above is only for one element edge, the procedure is repeated and the
+previously described element to global mapping is used to construct the full
+load vector $R$:
+
+$$
+\begin{align}
+\begin{Bmatrix}
+    R
+\end{Bmatrix} (\mathrm{gl}(\mathrm{el}))
++= 
+\begin{Bmatrix}
+    f_{s,e}
+\end{Bmatrix} (\mathrm{el})
+\end{align}
+$$
+
+### Plate Applied Tension
+
+The load vector for the plate is derived similarly to above, except the
+traction is zero in the $y$ direction and constant $\sigma_{\infty}$ in $x$
+direction. Repeating the above calculations but accounting for the change
+results in the element consistent load vector: 
+
+$$
+\begin{align}
+\begin{Bmatrix} 
+    f_s 
+\end{Bmatrix} 
+    &= 
+\frac{t_h(y_i-y_k)}{2} \times
+        \begin{Bmatrix}
+            \sigma_{\infty} \\
+            0 \\
+            0 \\
+            0 \\
+            \sigma_{\infty} \\
+            0 \\
+        \end{Bmatrix} 
+\end{align}
+$$
+
+Essentially the two edge nodes each take half the load.
 
 # References
 
@@ -805,3 +1257,5 @@ $$
 [^citeC3_2Bowers25]: A. F. Bowers, "Linear elastic material behavior" in *Applied Mechanics of Solids*, 2025, ch. 3.2. [Online].
     Available:
     [https://solidmechanics.org/Text/Chapter3_2/Chapter3_2.php](https://solidmechanics.org/Text/Chapter3_2/Chapter3_2.php)
+[^citeL7Fahimi26]: S. Fahimi. (2026). UBC CIVL 537 Computation Mechanics: "07 -
+    Isoparametric Formulation"
