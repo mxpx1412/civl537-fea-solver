@@ -141,7 +141,7 @@ def assemble_R_uniform_tension(nodes, loaded_nodes, sigma_inf, thickness):
     for i, k in zip(loaded_nodes[:-1], loaded_nodes[1:]):
         y_i, y_k = nodes[[i, k],1]
         f_sxi, f_sxk = (thickness*(y_i-y_k)*sigma_inf/2)*np.array([1, 1])
-        R[2*i + 1] += f_sxi
-        R[2*k + 1] += f_sxk
+        R[2*i] += f_sxi
+        R[2*k] += f_sxk
 
     return R

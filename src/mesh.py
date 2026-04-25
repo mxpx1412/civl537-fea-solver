@@ -125,14 +125,14 @@ def generate_plate_with_hole_mesh(W, H, R, n_radial, n_angular, rho_mh=1.0):
     theta_f = np.pi/2
 
     # Split the angular divisions relative to the size of H vs. W
-    na_height = max(1, np.round(n_angular*H/(W+H)))
-    na_width = n_angular - na_height
-    dtheta_height = (theta_diag - theta_0)/na_height
-    dtheta_width = (theta_f - theta_diag)/na_width
+    na_right = max(1, np.round(n_angular*H/(W+H)))
+    na_top = n_angular - na_right
+    dtheta_height = (theta_diag - theta_0)/na_right
+    dtheta_width = (theta_f - theta_diag)/na_top
 
     theta_array = np.array([
-        (dtheta_height*j_theta if j_theta <= na_height
-         else theta_diag + dtheta_width*(j_theta - na_height))
+        (dtheta_height*j_theta if j_theta <= na_right
+         else theta_diag + dtheta_width*(j_theta - na_right))
         for j_theta in range(na_nodes)])
 
     nodes_polar = np.array([(
@@ -157,11 +157,12 @@ def generate_plate_with_hole_mesh(W, H, R, n_radial, n_angular, rho_mh=1.0):
             elements += [[i, j, k], [l, k, j]]
     elements = np.array(elements)
 
+    tol = 1e-9*max(H, W)
     boundary_tags = {
-        "hole" : [n for n in range(n_nodes) if nodes_polar[n,0] == R],
-        "right" : [n for n in range(n_nodes) if nodes[n,0] == W],
-        "sym_x" : [n for n in range(n_nodes) if nodes[n,1] == 0],
-        "sym_y" : [n for n in range(n_nodes) if nodes[n,0] == 0.0],
+        "hole" : [n for n in range(n_nodes) if abs(nodes_polar[n,0]-R) < tol],
+        "right" : [n for n in range(n_nodes) if abs(nodes[n,0]-W) < tol],
+        "sym_x" : [n for n in range(n_nodes) if abs(nodes[n,1]) < tol],
+        "sym_y" : [n for n in range(n_nodes) if abs(nodes[n,0]) < tol],
     }
 
     return (nodes, elements, boundary_tags)

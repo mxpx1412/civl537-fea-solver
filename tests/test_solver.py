@@ -34,16 +34,34 @@ def test_tip_deflection_order_of_magnitude():
     """
     Tip deflection should be within an order of magnitude of Euler-Bernoulli.
     This is a sanity check, not a precision test.
+
+    ### Student Note - TEST MODIFIED
+
+    This test was modified from the original. In the initially given test, the
+    stiffness matrix implicitly used a thickness of `0.01`
+
+    (original): ```K = assemble_K(nodes, elems, D, 0.01)```
+
+    ...but then later on, `I` was calculated with:
+
+    (original): ```I = h**3 /12 ```
+
+    ...which implied a thickness of `1`, which appears inconsistent. Therefore,
+    an explicit variable `thickness` was introduced and assigned a value to
+    maintain consistency.
+
+    The test was failing prior to the modification, but passed afterwards.
+
     """
-    L, h, P, E, nu = 1.0, 0.25, 6000.0, 200e9, 0.25
+    L, h, P, E, nu, thickness = 1.0, 0.25, 6000.0, 200e9, 0.25, 1.0
     nodes, elems, tags = generate_rect_mesh(L, h, 8, 4)
     D = compute_D(E, nu, "plane_stress")
-    K = assemble_K(nodes, elems, D, 0.01)
+    K = assemble_K(nodes, elems, D, thickness)
     R = assemble_R_parabolic_shear(nodes, tags["loaded"], P, h)
     fixed_dofs = np.array([[2*n, 2*n+1] for n in tags["fixed"]]).ravel()
     u = apply_bc_and_solve(K, R, fixed_dofs)
 
-    I = h**3 / 12
+    I = thickness * h**3 / 12
     delta_EB = P * L**3 / (3 * E * I)
     tip_nodes = [n for n in tags["loaded"] if abs(nodes[n, 1]) < h / 8]
     tip_v = np.mean(u[2 * np.array(tip_nodes) + 1])

@@ -10,7 +10,9 @@ This is a Constant Strain Triangle (CST) Finite Element Analysis (FEA) solver
 developed as part of a class project for UBC Civil 537 (Computation Mechanics).
 [The live web app is on Streamlit](https://civl537-fea-solver.streamlit.app/). 
 
-## Part 1 - Repository Set-up
+## Mechanics and Implementation Discussion
+
+### Part 1 - Repository Set-up
 
 + The set-up of Docker and the Git / GitHub followed closely with the provided
   guide. 
@@ -21,9 +23,9 @@ developed as part of a class project for UBC Civil 537 (Computation Mechanics).
 + The starter app was successfully launched locally. Deployment to Streamlit
   was also successful. 
 
-## Part 2 - CST Element Formulation
+### Part 2 - CST Element Formulation
 
-### Area Computation
+#### Area Computation
 
 The signed area of a *parallelogram* spanned by two vectors $\langle p
 \rangle=\langle p_1,p_2\rangle$ and $\langle q \rangle=\langle
@@ -85,7 +87,7 @@ $$
 \end{align}
 $$
 
-### Shape Functions and Strain Displacement Matrix
+#### Shape Functions and Strain Displacement Matrix
 
 The shape functions $[N]$ and the strain-displacement matrix
 $[B]$ are derived based on the lecture notes [^citeL6Fahimi26]. For the
@@ -362,7 +364,7 @@ $$
 The above results for $[B]$ is used for the element implementation of
 the CSTs.
 
-### Constitutive Matrix
+#### Constitutive Matrix
 
 The strains and stresses involved in the strain and stress tensors of 3D solids
 are illustrated as follows:
@@ -517,7 +519,7 @@ $$
 
 The above matrices were implemented accordingly. 
 
-### Stiffness Matrix
+#### Stiffness Matrix
 
 Based on the principle of virtual work formulation, the element stiffness
 matrix $[k_e]$ is:
@@ -547,7 +549,7 @@ $$
 
 Which provides the element stiffness matrix for implementation. 
 
-### Hand Verification Example
+#### Hand Verification Example
 
 The strain-displacement matrix $[B]$ is verified using hand calculation with
 the following points: 
@@ -749,9 +751,9 @@ array([[-1.,  0.,  1.,  0.,  0.,  0.],
 
 We see that the hand calculation and the implemented function aligns. 
 
-## Part 3 - Meshing
+### Part 3 - Meshing
 
-### Rectangular Mesh
+#### Rectangular Mesh
 
 The rectangular mesh is constructed as follows. Firstly, the number of nodes
 are computed based on the number of divisions $n_x$ and $n_y$.
@@ -813,7 +815,7 @@ node. The element construction process is illustrated below.
 Finally, the boundary tags are assigned by filtering for nodes at the fixed
 edge $x=0$ and free edge $x=L$.
 
-### Plate with Hole Mesh
+#### Plate with Hole Mesh
 
 The plate with hole mesh is first constructed in Polar coordinates then mapped
 to the Cartesian coordinates. Given $n_r$ radial divisions and $n_a$ angular
@@ -823,7 +825,7 @@ Given plate half-width $W$ and height $H$, the angle of the diagonal is:
 
 $$
 \begin{align}
-\theta_{diag} &= \arctan\left({\frac{H}{W}}\right)
+\theta_{\mathrm{diag}} &= \arctan\left({\frac{H}{W}}\right)
 \end{align}
 $$
 
@@ -834,21 +836,21 @@ $$
 \begin{align}
 \Delta \theta &= \Delta\theta(\theta) = 
 \begin{cases}
-    \frac{\theta_{diag}}{n_{a,height}} & \theta < \theta_{diag} \\
-    \frac{\pi/2 - \theta_{diag}}{n_{a,width}} & \theta < \theta_{diag} \\
+    \frac{\theta_{\mathrm{diag}}}{n_{a,\mathrm{right}}} & \theta < \theta_{\mathrm{diag}} \\
+    \frac{\pi/2 - \theta_{\mathrm{diag}}}{n_{a,\mathrm{top}}} & \theta < \theta_{\mathrm{diag}} \\
 \end{cases}
 \end{align}
 $$
 
-Where $n_{a,height}$ and $n_{a,width}$ are the number of angular divisions
-along the height edge ($y \in [0, H]$) and width edge ($x \in [0, W]$)
+Where $n_{a,\mathrm{right}}$ and $n_{a,\mathrm{top}}$ are the number of angular divisions
+along the right edge ($y \in [0, H]$) and top edge ($x \in [0, W]$)
 respectively:
 
 $$
 \begin{align}
-n_{a,height} &= \max\left[
+n_{a,\mathrm{right}} &= \max\left[
     1, \mathrm{round}\left(\frac{H}{H+W}\right) \right] \\
-n_{a,width} &= n_a - n_{a,height}
+n_{a,\mathrm{top}} &= n_a - n_{a,\mathrm{right}}
 \end{align}
 $$
 
@@ -864,7 +866,7 @@ the radius of the hole $R$:
 
 $$
 \begin{align}
-r_{in}(\theta) &= R
+r_{\mathrm{in}}(\theta) &= R
 \end{align}
 $$
 
@@ -874,10 +876,10 @@ angle is less or greater than the diagonal angle:
 
 $$
 \begin{align}
-r_{out}(\theta) &= 
+r_{\mathrm{out}}(\theta) &= 
 \begin{cases}
-    \frac{W}{\cos\theta} & \theta \leq \theta_{diag} \\    
-    \frac{H}{\sin\theta} & \theta > \theta_{diag} \\    
+    \frac{W}{\cos\theta} & \theta \leq \theta_{\mathrm{diag}} \\    
+    \frac{H}{\sin\theta} & \theta > \theta_{\mathrm{diag}} \\    
 \end{cases}
 \end{align}
 $$
@@ -889,10 +891,10 @@ $$
 \begin{align}
 r(i_r, \theta_j) &= 
     \left(\frac{i_r}{n_r}\right)^{\rho_{mh}}\times (
-    r_{out}(\theta_j) - r_{in}(\theta_j)) + r_{in}(\theta_j)\\
+    r_{\mathrm{out}}(\theta_j) - r_{\mathrm{in}}(\theta_j)) + r_{\mathrm{in}}(\theta_j)\\
 r(i_r, \theta_j) &= 
     \left(\frac{i_r}{n_r}\right)^{\rho_{mh}}\times (
-    r_{out}(\theta_j) - R) + R
+    r_{\mathrm{out}}(\theta_j) - R) + R
 \end{align}
 $$
 
@@ -918,9 +920,9 @@ Finally, the element construction proceeds similarly to the rectangular mesh
 case. Instead of horizontal rows and vertical columns, the process is applied
 across radial rays and across angular rings. 
 
-## Part 4 - Global Assembly
+### Part 4 - Global Assembly
 
-### Global Stiffness Matrix
+#### Global Stiffness Matrix
 
 There are two DOFs per global node (before applying B.C.s). A simple global DOF
 indexing scheme is adopted, where for each global node number $n$, the
@@ -958,7 +960,7 @@ $$
     [k_e] (\mathrm{el}_r, \mathrm{el}_c)
 $$
 
-### Parabolic Shear Load Vector
+#### Parabolic Shear Load Vector
 
 For a given CST element on the boundary, the edge with the applied load has
 constant $x = L$. Accounting for the meshing scheme previously and adapting to
@@ -1180,13 +1182,14 @@ $$
 \end{align}
 $$
 
-Using Gaussian Quadrature for 3rd degree polynomial (expression with $\xi$
-multiplied to expression with $\xi^2$ in $t_y(y(\xi))$, we have: 
+Using ***Gaussian Quadrature for 3rd degree polynomial*** [^citeL7Fahimi26]
+(expression with $\xi$ times expression with $\xi^2$ in $t_y(y(\xi))$, we have
+the ***element consistent load vector for parabolic load*** : 
 
 $$
 \begin{align}
 \begin{Bmatrix} 
-    f_s 
+    f_{s,e}
 \end{Bmatrix} 
     &= 
 \frac{t_h(y_i-y_k)}{4} \times
@@ -1218,17 +1221,17 @@ $$
 \end{align}
 $$
 
-### Plate Applied Tension
+#### Plate Applied Tension
 
 The load vector for the plate is derived similarly to above, except the
 traction is zero in the $y$ direction and constant $\sigma_{\infty}$ in $x$
 direction. Repeating the above calculations but accounting for the change
-results in the element consistent load vector: 
+results in the ***element consistent load vector for*** $\sigma_{\infty}$: 
 
 $$
 \begin{align}
 \begin{Bmatrix} 
-    f_s 
+    f_{s,e}
 \end{Bmatrix} 
     &= 
 \frac{t_h(y_i-y_k)}{2} \times
@@ -1245,7 +1248,164 @@ $$
 
 Essentially the two edge nodes each take half the load.
 
-# References
+### Part 5 - Solver and Post Processing
+
+#### Solver
+
+The previous steps provides the global stiffness matrix $[K_g]$ and the global
+consistent load vector $\begin{Bmatrix} R \end{Bmatrix} = \begin{Bmatrix} R_g
+\end{Bmatrix}$. The fixed DOFs are also previously defined. Based on
+recommendations, the final displacements are computed as follows: 
+
+1. A list of free DOFs is constructed as the complement of the fixed DOFs (i.e.
+   for DOFs not in the fixed DOF list, add it to the free DOF list).
+2. Select the free parts of the global stiffness matrix and global load vector
+   to construct the ***final stiffness matrix*** and ***final load vector***.
+
+$$
+\begin{align}
+    [K_f] &= [K_g](\mathrm{free}, \mathrm{free}) \\
+    \begin{Bmatrix}
+        R_f
+    \end{Bmatrix} &= 
+    \begin{Bmatrix}
+        R_g
+    \end{Bmatrix}(\mathrm{free})
+\end{align}
+$$
+
+3. Solve the final system of equations to obtain the ***final displacements***.
+
+$$
+\begin{align}
+    [K_f]
+    \begin{Bmatrix}
+        u_f
+    \end{Bmatrix} 
+    &=
+    \begin{Bmatrix}
+        R_f
+    \end{Bmatrix} \\
+    \begin{Bmatrix}
+        u_f
+    \end{Bmatrix}
+    &= [K_f]^{-1}
+    \begin{Bmatrix}
+        R_f
+    \end{Bmatrix}
+\end{align}
+$$
+
+4. The final ***global displacement vector*** $\begin{Bmatrix} u_g \end{Bmatrix}$ is
+   equal to $0$ at fixed DOFs, and equal to the corresponding value in the
+   solved $\begin{Bmatrix} u_f \end{Bmatrix}$ at free DOFs. 
+
+#### Post Processing
+
+After solving the system of equations, the ***stresses*** are obtained using
+the constitutive matrix, stress-displacement matrix and solved displacements: 
+
+$$
+\begin{align}
+    \begin{Bmatrix}
+    \sigma
+    \end{Bmatrix}
+    &= [D]
+    \begin{Bmatrix}
+    \epsilon
+    \end{Bmatrix} \\
+    \begin{Bmatrix}
+    \sigma
+    \end{Bmatrix}
+    &= [D][B]
+    \begin{Bmatrix}
+    u_e
+    \end{Bmatrix} \\
+\end{align}
+$$
+
+Where the element displacements are selected from the global displacements
+using the previously described element-to-global mapping: 
+
+$$
+\begin{align}
+    \begin{Bmatrix}
+        u_e
+    \end{Bmatrix} (\mathrm{el})
+    &=
+    \begin{Bmatrix}
+        u_g
+    \end{Bmatrix} (\mathrm{gl}(\mathrm{el}))
+\end{align}
+$$
+
+The ***Von Mises Stress*** is computed by [^citeHaukaas24]:
+
+$$
+\begin{align}
+\sigma_{VM} 
+    &=
+    \sqrt{ \sigma_{xx}^2 + \sigma_{yy}^2 - \sigma_{xx} \sigma_{yy}
+        + 3\tau_{xy}^2 }
+\end{align}
+$$
+
+Finally the strain energy is computed by: 
+
+$$
+\begin{align}
+    
+\end{align}
+$$
+
+#### Test Modification
+
+***IMPORTANT***: one of the function in the initially given `test_solver.py`
+unit test was modified to correct an apparent calculation discrepancy.  In the
+initially given test, the stiffness matrix implicitly used a thickness of
+`0.01`, original code:
+
+```python
+K = assemble_K(nodes, elems, D, 0.01)
+```
+
+...but then later on, `I` was calculated with:
+
+```python
+I = h**3 /12
+```
+
+...which implied a thickness of `1`, which appears inconsistent. Therefore,
+an explicit variable `thickness` was introduced and assigned a value to
+maintain consistency.
+
+The test was failing prior to the modification, but passed afterwards.
+
+
+## References
+
+### Materials and Tools Used for the Project
+
++ **Starter files**: provided courtesy of [Dr. Shayan Fahimi](https://github.com/shf)
++ **Code Libraries and Packages**:
+    + [Python](https://www.python.org/downloads/release/python-3110/)
+    + [Docker](https://www.docker.com/)
+    + (Please see [`requirements.txt`](./requirements.txt)
+    and [`Dockerfile`](./Dockerfile) for details)
++ **Webapp deployment**: [Streamlit](https://streamlit.io/)
++ **Figure Drafting**: [draw.io](https://github.com/jgraph/drawio-desktop)
++ **AI Assistant**: [Claude](https://claude.ai/), see details about how AI was
+  used in the [AI usage summary](./AI_Usage_Summary.md).
++ **Code Editing / Testing**: 
+    + Text Editor: [Vim](https://www.vim.org/download.php)
+    + Terminal Emulator: [Konsole](https://apps.kde.org/konsole/)
+    + Miscellaneous testing (not for final deliverables): [Jupyter
+      Lab](https://jupyter.org/)
+
+
+### Bibliography
+
+Please see footnotes below.
 
 [^citeFrose18]: R. Froese and B. Wetton, "Notes for Math 152: Linear Systems",
     2018.  [Online]. Available
@@ -1261,3 +1421,6 @@ Essentially the two edge nodes each take half the load.
     [https://solidmechanics.org/Text/Chapter3_2/Chapter3_2.php](https://solidmechanics.org/Text/Chapter3_2/Chapter3_2.php)
 [^citeL7Fahimi26]: S. Fahimi. (2026). UBC CIVL 537 Computation Mechanics: "07 -
     Isoparametric Formulation"
+[^citeHaukaas24]: T. Haukaas (2024). A Short Course on Nonlinear Finite Element
+    Analysis: "Material Nonlinearity". [Online]. Available: 
+    [https://civil-terje.sites.olt.ubc.ca/files/2024/04/Slides-on-Material-Nonlinearity.pdf](https://civil-terje.sites.olt.ubc.ca/files/2024/04/Slides-on-Material-Nonlinearity.pdf)

@@ -31,4 +31,17 @@ def apply_bc_and_solve(K, R, fixed_dofs):
         - Symmetry on y=0: fix v-DOFs of nodes on y=0
         - Symmetry on x=0: fix u-DOFs of nodes on x=0
     """
-    raise NotImplementedError
+
+    n_dof = R.shape[0]
+
+    free_dofs = [dof for dof in range(n_dof) if not(dof in fixed_dofs)]
+
+    K_ff = K[np.ix_(free_dofs, free_dofs)]
+    R_f = R[free_dofs]
+
+    u_f = spsolve(K_ff, R_f)
+
+    u = np.zeros(shape=(n_dof,))
+    u[free_dofs] = u_f
+
+    return u
