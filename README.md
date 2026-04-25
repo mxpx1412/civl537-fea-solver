@@ -1135,6 +1135,7 @@ $$
 $$
 
 To adjust the limits of integration: 
+
 $$
 \begin{align}
 \frac{dy}{d\xi}
@@ -1145,6 +1146,7 @@ dy
 $$
 
 So we can write: 
+
 $$
 \begin{align}
 \begin{Bmatrix} 
