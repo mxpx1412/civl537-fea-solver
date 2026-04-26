@@ -30,9 +30,7 @@ HEALTHCHECK CMD curl --fail http://localhost:8501/_stcore/health || exit 1
 #   --server.address=0.0.0.0    Listen on all network interfaces (not just localhost)
 #   --server.enableCORS=false   Disable cross-origin restrictions for local dev
 # App python file:
-# - During development, the file being ran is `app_starter.py` 
-# - After development is complete, `app.py` will be ran instead
-CMD ["streamlit", "run", "app_starter.py", \
+CMD ["streamlit", "run", "app.py", \
      "--server.port=8501", \
      "--server.address=0.0.0.0", \
      "--server.enableCORS=false", \

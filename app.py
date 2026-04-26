@@ -128,8 +128,8 @@ with tab1:
         sort_idx = np.argsort(x_na)
 
         x_anal = np.linspace(0, L, 200)
-        v_timo = timoshenko_deflection(x_anal, L, h, P, E, nu)
-        v_eb = euler_bernoulli_deflection(x_anal, L, P, E, h)
+        v_timo = timoshenko_deflection(x_anal, L, h, P, E, nu, t)
+        v_eb = euler_bernoulli_deflection(x_anal, L, P, E, h, t)
 
         fig1 = go.Figure()
         fig1.add_trace(go.Scatter(x=x_na[sort_idx], y=v_na[sort_idx],
@@ -151,7 +151,7 @@ with tab1:
         sig_xx_bot = stresses[bot_elems, 0]
         sort_b = np.argsort(x_bot)
 
-        sig_xx_anal = timoshenko_sigma_xx(x_anal, -h/2, L, P, h)
+        sig_xx_anal = timoshenko_sigma_xx(x_anal, -h/2, L, P, h, t)
 
         fig2 = go.Figure()
         fig2.add_trace(go.Scatter(x=x_bot[sort_b], y=sig_xx_bot[sort_b],
@@ -177,7 +177,7 @@ with tab1:
         sort_m = np.argsort(y_mid)
 
         y_anal = np.linspace(-h/2, h/2, 200)
-        tau_anal = timoshenko_tau_xy(y_anal, P, h)
+        tau_anal = timoshenko_tau_xy(y_anal, P, h, t)
 
         fig4 = go.Figure()
         fig4.add_trace(go.Scatter(x=tau_mid[sort_m], y=y_mid[sort_m],
@@ -221,6 +221,8 @@ with tab2:
                                      key="hole_sigma")
         n_rad = st.slider("Radial divisions", 4, 24, 10, key="hole_nrad")
         n_ang = st.slider("Angular divisions", 4, 24, 12, key="hole_nang")
+        rho_mh = st.number_input(
+            "Mesh density near hole ρ_mh", value=1.0, key="rho_mh")
         solve_hole = st.button("Solve Plate with Hole", type="primary")
 
     # Mesh preview
@@ -253,8 +255,8 @@ with tab2:
         r_cent = np.sqrt(centroids_h[:, 0]**2 + centroids_h[:, 1]**2)
         theta_cent = np.arctan2(centroids_h[:, 1], centroids_h[:, 0])
 
-        hole_tol = 1.5 * R * (1.0 / n_rad)
-        near_hole = r_cent < (R + hole_tol)
+        near_hole = [1 < sum([n_e in tags_h["hole"] for n_e in elem_i])
+                     for elem_i in elems_h]
         theta_near = theta_cent[near_hole]
         sig_xx_near = stresses_h[near_hole, 0]
         sig_yy_near = stresses_h[near_hole, 1]
@@ -323,14 +325,15 @@ with tab3:
             mesh_sizes = [2, 4, 8, 16, 32]
             D_conv = compute_D(E, nu, mode_key)
             L_c, h_c, P_c = 1.0, 0.25, 6000.0
-            tip_exact = timoshenko_deflection(L_c, L_c, h_c, P_c, E, nu)
+            t_c = 1.0
+            tip_exact = timoshenko_deflection(L_c, L_c, h_c, P_c, E, nu, t_c)
             n_elems_list, errors = [], []
 
             progress = st.progress(0)
             for idx, n in enumerate(mesh_sizes):
                 ny_c = max(2, n // 2)
                 nodes_cv, elems_cv, tags_cv = generate_rect_mesh(L_c, h_c, n, ny_c)
-                K_cv = assemble_K(nodes_cv, elems_cv, D_conv, t)
+                K_cv = assemble_K(nodes_cv, elems_cv, D_conv, t_c)
                 R_cv = assemble_R_parabolic_shear(nodes_cv, tags_cv["loaded"], P_c, h_c)
                 fd = np.array([[2*nd, 2*nd+1] for nd in tags_cv["fixed"]]).ravel()
                 u_cv = apply_bc_and_solve(K_cv, R_cv, fd)
@@ -380,7 +383,8 @@ with tab3:
                 cent_hc = np.mean(nodes_hc[elems_hc], axis=1)
                 r_hc = np.sqrt(cent_hc[:, 0]**2 + cent_hc[:, 1]**2)
                 th_hc = np.arctan2(cent_hc[:, 1], cent_hc[:, 0])
-                near = r_hc < R_h * 1.3
+                near = [1 < sum([n_e in tags_hc["hole"] for n_e in elem_i])
+                             for elem_i in elems_hc]
                 sig_tt_hc = (stresses_hc[near, 0] * np.sin(th_hc[near])**2
                              + stresses_hc[near, 1] * np.cos(th_hc[near])**2
                              - 2 * stresses_hc[near, 2] * np.sin(th_hc[near]) * np.cos(th_hc[near]))
@@ -405,6 +409,7 @@ with tab3:
     if st.button("Run Locking Study", type="primary", key="locking"):
         nu_values = [0.3, 0.4, 0.45, 0.49, 0.499, 0.4999]
         L_l, h_l, P_l = 1.0, 0.25, 6000.0
+        t_l = 1.0
         nx_l, ny_l = 8, 4
         norm_deflections, cond_numbers = [], []
 
@@ -412,7 +417,7 @@ with tab3:
         for idx, nu_val in enumerate(nu_values):
             D_l = compute_D(E, nu_val, "plane_strain")
             nodes_l, elems_l, tags_l = generate_rect_mesh(L_l, h_l, nx_l, ny_l)
-            K_l = assemble_K(nodes_l, elems_l, D_l, t)
+            K_l = assemble_K(nodes_l, elems_l, D_l, t_l)
             R_l = assemble_R_parabolic_shear(nodes_l, tags_l["loaded"], P_l, h_l)
             fd_l = np.array([[2*n, 2*n+1] for n in tags_l["fixed"]]).ravel()
 
@@ -425,7 +430,8 @@ with tab3:
             cond_numbers.append(cond)
 
             u_l = apply_bc_and_solve(K_l, R_l, fd_l)
-            tip_exact_l = timoshenko_deflection(L_l, L_l, h_l, P_l, E, nu_val)
+            tip_exact_l = timoshenko_deflection(
+                L_l, L_l, h_l, P_l, E, nu_val, t_l)
             tip_ns_l = [n for n in tags_l["loaded"]
                         if abs(nodes_l[n, 1]) < h_l / (2 * ny_l) + 1e-10]
             tip_v_l = np.mean(u_l[2 * np.array(tip_ns_l) + 1])
