@@ -268,7 +268,9 @@ with tab2:
         solve_hole = st.button("Solve Plate with Hole", type="primary")
 
     # Mesh preview
-    nodes_h, elems_h, tags_h = generate_plate_with_hole_mesh(W, H, R, n_rad, n_ang)
+    nodes_h, elems_h, tags_h = generate_plate_with_hole_mesh(W, H, R, n_rad,
+                                                             n_ang,
+                                                             rho_mh=rho_mh)
     with col_mesh2:
         st.plotly_chart(plot_mesh(nodes_h, elems_h,
                         f"Mesh: {len(nodes_h)} nodes · {len(elems_h)} elements"),
