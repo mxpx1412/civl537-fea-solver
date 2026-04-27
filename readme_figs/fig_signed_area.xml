@@ -1,0 +1,101 @@
+<mxfile host="Electron" agent="Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) draw.io/29.6.6 Chrome/144.0.7559.236 Electron/40.8.4 Safari/537.36" version="29.6.6">
+  <diagram name="Page-1" id="592dIJoRBoHKGJok7k0j">
+    <mxGraphModel dx="353" dy="211" grid="0" gridSize="5" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="20000" pageHeight="11250" math="1" shadow="0">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+        <mxCell id="GafH_nTt8hYF0Kf0SNJy-1" edge="1" parent="1" style="endArrow=open;html=1;rounded=0;endFill=0;strokeColor=#000000;strokeWidth=2;" value="">
+          <mxGeometry height="50" relative="1" width="50" as="geometry">
+            <mxPoint x="800" y="400" as="sourcePoint" />
+            <mxPoint x="840" y="320" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="GafH_nTt8hYF0Kf0SNJy-17" connectable="0" parent="GafH_nTt8hYF0Kf0SNJy-1" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];" value="\(\mathbf{q}\)" vertex="1">
+          <mxGeometry relative="1" x="0.7458" y="-5" as="geometry">
+            <mxPoint x="-19" y="-12" as="offset" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="GafH_nTt8hYF0Kf0SNJy-2" edge="1" parent="1" style="endArrow=open;html=1;rounded=0;endFill=0;strokeColor=#000000;strokeWidth=2;" value="">
+          <mxGeometry height="50" relative="1" width="50" as="geometry">
+            <mxPoint x="800" y="400" as="sourcePoint" />
+            <mxPoint x="880" y="370" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="GafH_nTt8hYF0Kf0SNJy-15" connectable="0" parent="GafH_nTt8hYF0Kf0SNJy-2" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];" value="\(\mathbf{p}\)" vertex="1">
+          <mxGeometry relative="1" x="0.7901" y="-4" as="geometry">
+            <mxPoint x="7" y="3" as="offset" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="GafH_nTt8hYF0Kf0SNJy-3" edge="1" parent="1" style="endArrow=none;html=1;rounded=0;endFill=0;strokeColor=#CA0147;" value="">
+          <mxGeometry height="50" relative="1" width="50" as="geometry">
+            <Array as="points">
+              <mxPoint x="880" y="370" />
+              <mxPoint x="920" y="290" />
+              <mxPoint x="840" y="320" />
+            </Array>
+            <mxPoint x="800" y="400" as="sourcePoint" />
+            <mxPoint x="800" y="400" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="GafH_nTt8hYF0Kf0SNJy-9" edge="1" parent="1" style="endArrow=none;html=1;rounded=0;dashed=1;strokeColor=#FAC205;" value="">
+          <mxGeometry height="50" relative="1" width="50" as="geometry">
+            <Array as="points">
+              <mxPoint x="880" y="370" />
+              <mxPoint x="840" y="320" />
+            </Array>
+            <mxPoint x="800" y="400" as="sourcePoint" />
+            <mxPoint x="800" y="400" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="GafH_nTt8hYF0Kf0SNJy-10" edge="1" parent="1" style="endArrow=open;html=1;rounded=0;endFill=0;" value="">
+          <mxGeometry height="50" relative="1" width="50" as="geometry">
+            <mxPoint x="800" y="400" as="sourcePoint" />
+            <mxPoint x="800" y="290" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="GafH_nTt8hYF0Kf0SNJy-18" connectable="0" parent="GafH_nTt8hYF0Kf0SNJy-10" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];" value="\(y\)" vertex="1">
+          <mxGeometry relative="1" x="0.5562" y="1" as="geometry">
+            <mxPoint y="-34" as="offset" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="GafH_nTt8hYF0Kf0SNJy-11" edge="1" parent="1" style="endArrow=open;html=1;rounded=0;endFill=0;" value="">
+          <mxGeometry height="50" relative="1" width="50" as="geometry">
+            <mxPoint x="800" y="400" as="sourcePoint" />
+            <mxPoint x="935" y="400" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="GafH_nTt8hYF0Kf0SNJy-19" connectable="0" parent="GafH_nTt8hYF0Kf0SNJy-11" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];" value="\(x\)" vertex="1">
+          <mxGeometry relative="1" x="0.9376" y="1" as="geometry">
+            <mxPoint x="14" as="offset" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="GafH_nTt8hYF0Kf0SNJy-12" edge="1" parent="1" style="endArrow=open;html=1;rounded=0;curved=1;endFill=0;strokeColor=#C5C9C7;" value="">
+          <mxGeometry height="50" relative="1" width="50" as="geometry">
+            <Array as="points">
+              <mxPoint x="830" y="375" />
+            </Array>
+            <mxPoint x="825" y="390" as="sourcePoint" />
+            <mxPoint x="815" y="370" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="GafH_nTt8hYF0Kf0SNJy-13" connectable="0" parent="GafH_nTt8hYF0Kf0SNJy-12" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];fontColor=#C5C9C7;" value="\(\theta\)" vertex="1">
+          <mxGeometry relative="1" x="0.2793" y="4" as="geometry">
+            <mxPoint x="5" y="-2" as="offset" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="GafH_nTt8hYF0Kf0SNJy-24" parent="1" style="shape=parallelogram;perimeter=parallelogramPerimeter;whiteSpace=wrap;html=1;fixedSize=1;size=5;strokeColor=#CA0147;" value="" vertex="1">
+          <mxGeometry height="10" width="20" x="920" y="345" as="geometry" />
+        </mxCell>
+        <mxCell id="GafH_nTt8hYF0Kf0SNJy-25" parent="1" style="verticalLabelPosition=bottom;verticalAlign=top;html=1;shape=mxgraph.basic.acute_triangle;dx=0.5;strokeColor=#FAC205;dashed=1;" value="" vertex="1">
+          <mxGeometry height="10" width="20" x="920" y="370" as="geometry" />
+        </mxCell>
+        <mxCell id="GafH_nTt8hYF0Kf0SNJy-26" parent="1" style="text;html=1;whiteSpace=wrap;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;rounded=0;fontSize=8;" value="\(\text{Signed Area} = \det\left&amp;lt;\mathbf{p},\,\mathbf{q}\right&amp;gt;^T\)" vertex="1">
+          <mxGeometry height="30" width="135" x="945" y="335" as="geometry" />
+        </mxCell>
+        <mxCell id="GafH_nTt8hYF0Kf0SNJy-27" parent="1" style="text;html=1;whiteSpace=wrap;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;rounded=0;fontSize=8;" value="\(\text{Signed Area} = \frac{1}{2}\det\left&amp;lt;\mathbf{p},\,\mathbf{q}\right&amp;gt;^T\)" vertex="1">
+          <mxGeometry height="30" width="135" x="945" y="360" as="geometry" />
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>

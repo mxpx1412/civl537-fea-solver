@@ -17,6 +17,11 @@ from src.analytics import (
     kirsch_stress_polar, kirsch_stress_cartesian,
 )
 
+# Plotly settings
+plc_fea = "#2138ab" # Sapphire
+plc_ex1 = "#01a049" # Emerald
+plc_ex2 = "#c760ff" # Violet
+
 st.set_page_config(page_title="CST FEA Solver", layout="wide")
 st.title("2D Plane Stress / Plane Strain FEA Solver")
 
@@ -26,10 +31,10 @@ st.title("2D Plane Stress / Plane Strain FEA Solver")
 with st.sidebar:
     st.header("Material Properties")
     mode = st.selectbox("Analysis Mode", ["Plane Stress", "Plane Strain"])
-    E = st.number_input("Young's Modulus E (Pa)", value=200e9, format="%.2e")
-    nu = st.number_input("Poisson's Ratio ν", value=0.25, min_value=0.0, max_value=0.4999,
+    E = st.number_input(r"Young's Modulus $E$ (Pa)", value=200e9, format="%.2e")
+    nu = st.number_input(r"Poisson's Ratio $\nu$", value=0.25, min_value=0.0, max_value=0.4999,
                          format="%.4f")
-    t = st.number_input("Thickness (m)", value=0.01, format="%.4f")
+    t = st.number_input(r"Thickness $t$ (m)", value=0.01, format="%.4f")
 
     if nu >= 0.499:
         st.warning("Near-incompressible — results may be unreliable with CST elements. "
@@ -59,16 +64,24 @@ def plot_mesh(nodes, elements, title="Mesh Preview"):
     return fig
 
 
-def plot_deformed_mesh(nodes, elements, u, stresses, scale, title="Deformed Mesh"):
-    vm = compute_von_mises(stresses)
+def plot_deformed_mesh(
+    nodes, elements, u, stresses, scale, title="Deformed Mesh", 
+    stress_type="σ_VM"):
+
+    if stress_type == "σ_VM":
+        stress_res = compute_von_mises(stresses)
+    else:
+        stress_dict = {"σ_xx":0, "σ_yy":1, "τ_xy":2}
+        stress_res = stresses[:, stress_dict[stress_type]]
+
     u_disp = u.reshape(-1, 2)
     nodes_def = nodes + scale * u_disp
 
     fig = go.Figure(go.Mesh3d(
         x=nodes_def[:, 0], y=nodes_def[:, 1], z=np.zeros(len(nodes_def)),
         i=elements[:, 0], j=elements[:, 1], k=elements[:, 2],
-        intensity=vm, colorscale="Jet", showscale=True,
-        colorbar=dict(title="σ_vm (Pa)"),
+        intensity=stress_res, colorscale="Jet", showscale=True,
+        colorbar=dict(title=f"{stress_type} (Pa)"),
         flatshading=True,
     ))
     fig.update_layout(
@@ -92,11 +105,11 @@ with tab1:
 
     col_input, col_mesh = st.columns([1, 2])
     with col_input:
-        L = st.number_input("Plate Length L (m)", value=1.0, key="cant_L")
-        h = st.number_input("Plate Height h (m)", value=0.25, key="cant_h")
-        P = st.number_input("Tip Load P (N)", value=6000.0, key="cant_P")
-        nx = st.slider("Elements in x", 2, 32, 8, key="cant_nx")
-        ny = st.slider("Elements in y", 2, 16, 4, key="cant_ny")
+        L = st.number_input(r"Plate Length $L$ (m)", value=1.0, key="cant_L")
+        h = st.number_input(r"Plate Height $h$ (m)", value=0.25, key="cant_h")
+        P = st.number_input(r"Tip Load $P$ (N)", value=6000.0, key="cant_P")
+        nx = st.slider(r"Divisions in $x$", 2, 32, 8, key="cant_nx")
+        ny = st.slider(r"Divisions in $y$", 2, 16, 4, key="cant_ny")
         solve_cant = st.button("Solve Cantilever", type="primary")
 
     # Mesh preview
@@ -116,10 +129,26 @@ with tab1:
             stresses = compute_stresses(nodes_c, elems_c, u, D)
             U = strain_energy(K, u)
 
+        st.session_state["cant_results"] = {
+            "nodes": nodes_c, "elems": elems_c, "u": u,
+            "stresses": stresses, "U": U, "L": L, "h": h, "P": P,
+            "nx": nx, "ny": ny, "t": t, "E": E, "nu": nu,
+        }
+
+
+    if "cant_results" in st.session_state:
+        res = st.session_state["cant_results"]
+        nodes_c = res["nodes"]; elems_c = res["elems"]
+        u = res["u"]; stresses = res["stresses"]; U = res["U"]
+        L = res["L"]; h = res["h"]; P = res["P"]
+        nx = res["nx"]; ny = res["ny"]; t = res["t"]
+        E = res["E"]; nu = res["nu"]
+        U = res["U"]
+
         st.success(f"Solved — Strain energy U = {U:.6e} J")
 
         # ── Plot 1: Deflection curve along neutral axis ──
-        st.markdown("#### Deflection v(x) along neutral axis (y ≈ 0)")
+        st.markdown(r"#### Deflection $\nu(x)$ along neutral axis ($y ≈ 0$)")
         tol_y = h / (2 * ny) + 1e-10
         na_mask = np.abs(nodes_c[:, 1]) < tol_y
         na_nodes = np.where(na_mask)[0]
@@ -133,16 +162,20 @@ with tab1:
 
         fig1 = go.Figure()
         fig1.add_trace(go.Scatter(x=x_na[sort_idx], y=v_na[sort_idx],
-                                  mode='markers+lines', name='FEA'))
+                                  mode='markers+lines', name='FEA',
+                                  marker=dict(color=plc_fea),
+                                  line=dict(color=plc_fea)))
         fig1.add_trace(go.Scatter(x=x_anal, y=v_timo,
-                                  mode='lines', name='Timoshenko', line=dict(dash='dash')))
+                                  mode='lines', name='Timoshenko',
+                                  line=dict(color=plc_ex1, dash='dash')))
         fig1.add_trace(go.Scatter(x=x_anal, y=v_eb,
-                                  mode='lines', name='Euler–Bernoulli', line=dict(dash='dot')))
+                                  mode='lines', name='Euler–Bernoulli', 
+                                  line=dict(color=plc_ex2, dash='dot')))
         fig1.update_layout(xaxis_title="x (m)", yaxis_title="v (m)", height=400)
         st.plotly_chart(fig1, use_container_width=True)
 
         # ── Plot 2: σ_xx along bottom fiber ──
-        st.markdown("#### σ_xx along bottom fiber (y = −h/2)")
+        st.markdown(r"#### $σ_{xx}$ along bottom fiber ($y = −h/2$)")
         centroids = np.mean(nodes_c[elems_c], axis=1)
         bottom_tol = h / (2 * ny)
         bot_mask = np.abs(centroids[:, 1] - (-h / 2)) < bottom_tol
@@ -155,20 +188,26 @@ with tab1:
 
         fig2 = go.Figure()
         fig2.add_trace(go.Scatter(x=x_bot[sort_b], y=sig_xx_bot[sort_b],
-                                  mode='markers+lines', name='FEA'))
+                                  mode='markers+lines', name='FEA', 
+                                  line=dict(color=plc_fea), 
+                                  marker=dict(color=plc_fea)))
         fig2.add_trace(go.Scatter(x=x_anal, y=sig_xx_anal,
-                                  mode='lines', name='Timoshenko', line=dict(dash='dash')))
+                                  mode='lines', name='Timoshenko', 
+                                  line=dict(color=plc_ex1, dash='dash')))
         fig2.update_layout(xaxis_title="x (m)", yaxis_title="σ_xx (Pa)", height=400)
         st.plotly_chart(fig2, use_container_width=True)
 
         # ── Plot 3: Deformed mesh with von Mises ──
-        st.markdown("#### Deformed Mesh — Von Mises Stress")
+        st.markdown("#### Deformed Mesh — Beam Stresses")
+        stress_type_c = st.selectbox(
+            "Cantilever Stress Type", ["σ_VM", "σ_xx", "σ_yy", "τ_xy"], key="stress_type_c")
         scale = st.slider("Deformation scale", 1, 500, 100, key="cant_scale")
-        st.plotly_chart(plot_deformed_mesh(nodes_c, elems_c, u, stresses, scale),
+        st.plotly_chart(plot_deformed_mesh(
+            nodes_c, elems_c, u, stresses, scale, stress_type=stress_type_c),
                         use_container_width=True)
 
         # ── Plot 4: τ_xy across beam depth at mid-span ──
-        st.markdown("#### τ_xy across beam depth at mid-span (x ≈ L/2)")
+        st.markdown(r"#### $τ_{xy}$ across beam depth at mid-span ($x ≈ L/2$)")
         mid_tol = L / (2 * nx)
         mid_mask = np.abs(centroids[:, 0] - L/2) < mid_tol
         mid_elems = np.where(mid_mask)[0]
@@ -181,9 +220,12 @@ with tab1:
 
         fig4 = go.Figure()
         fig4.add_trace(go.Scatter(x=tau_mid[sort_m], y=y_mid[sort_m],
-                                  mode='markers+lines', name='FEA'))
+                                  mode='markers+lines', name='FEA', 
+                                  line=dict(color=plc_fea), 
+                                  marker=dict(color=plc_fea)))
         fig4.add_trace(go.Scatter(x=tau_anal, y=y_anal,
-                                  mode='lines', name='Timoshenko', line=dict(dash='dash')))
+                                  mode='lines', name='Timoshenko', 
+                                  line=dict(color=plc_ex1, dash='dash')))
         fig4.update_layout(xaxis_title="τ_xy (Pa)", yaxis_title="y (m)", height=400)
         st.plotly_chart(fig4, use_container_width=True)
 
@@ -214,15 +256,15 @@ with tab2:
 
     col_input2, col_mesh2 = st.columns([1, 2])
     with col_input2:
-        W = st.number_input("Half-width W (m)", value=5.0, key="hole_W")
-        H = st.number_input("Half-height H (m)", value=5.0, key="hole_H")
-        R = st.number_input("Hole radius R (m)", value=1.0, key="hole_R")
-        sigma_inf = st.number_input("Far-field stress σ∞ (Pa)", value=1e6, format="%.2e",
+        W = st.number_input(r"Half-width $W$ (m)", value=5.0, key="hole_W")
+        H = st.number_input(r"Half-height $H$ (m)", value=5.0, key="hole_H")
+        R = st.number_input(r"Hole radius $R$ (m)", value=1.0, key="hole_R")
+        sigma_inf = st.number_input(r"Far-field stress $σ_{\infty}$ (Pa)", value=1e6, format="%.2e",
                                      key="hole_sigma")
         n_rad = st.slider("Radial divisions", 4, 24, 10, key="hole_nrad")
         n_ang = st.slider("Angular divisions", 4, 24, 12, key="hole_nang")
         rho_mh = st.number_input(
-            "Mesh density near hole ρ_mh", value=1.0, key="rho_mh")
+            r"Mesh density near hole $ρ_{mh}$", value=1.0, key="rho_mh")
         solve_hole = st.button("Solve Plate with Hole", type="primary")
 
     # Mesh preview
@@ -248,9 +290,26 @@ with tab2:
 
             u_h = apply_bc_and_solve(K_h, R_h, fixed_dofs_h)
             stresses_h = compute_stresses(nodes_h, elems_h, u_h, D_h)
+            U_h = strain_energy(K_h, u_h)
+
+        st.session_state["hole_results"] = {
+            "nodes": nodes_h, "elems": elems_h, "tags": tags_h,
+            "u": u_h, "stresses": stresses_h,
+            "W": W, "H": H, "R": R, "sigma_inf": sigma_inf,
+            "n_ang": n_ang, "U_h" : U_h
+        }
+
+    if "hole_results" in st.session_state:
+        res_h = st.session_state["hole_results"]
+        nodes_h = res_h["nodes"]; elems_h = res_h["elems"]; tags_h = res_h["tags"]
+        u_h = res_h["u"]; stresses_h = res_h["stresses"]
+        W = res_h["W"]; H = res_h["H"]; R = res_h["R"]
+        sigma_inf = res_h["sigma_inf"]; n_ang = res_h["n_ang"]
+        U_h = res_h["U_h"]
+        st.success(f"Solved — Strain energy U_h = {U_h:.6e} J")
 
         # ── Plot 5: σ_θθ along hole boundary ──
-        st.markdown("#### σ_θθ along hole boundary (r = R)")
+        st.markdown(r"#### $σ_{θθ}$ along hole boundary $(r = R)$")
         centroids_h = np.mean(nodes_h[elems_h], axis=1)
         r_cent = np.sqrt(centroids_h[:, 0]**2 + centroids_h[:, 1]**2)
         theta_cent = np.arctan2(centroids_h[:, 1], centroids_h[:, 0])
@@ -274,10 +333,12 @@ with tab2:
         sort5 = np.argsort(theta_near)
         fig5.add_trace(go.Scatter(x=np.degrees(theta_near[sort5]),
                                   y=sig_tt_fea[sort5] / sigma_inf,
-                                  mode='markers', name='FEA'))
+                                  mode='markers',
+                                  marker=dict(color=plc_fea), name='FEA'))
         fig5.add_trace(go.Scatter(x=np.degrees(theta_anal),
                                   y=sig_tt_anal / sigma_inf,
-                                  mode='lines', name='Kirsch', line=dict(dash='dash')))
+                                  mode='lines', name='Kirsch',
+                                  line=dict(color=plc_ex1, dash='dash')))
         fig5.update_layout(xaxis_title="θ (degrees)", yaxis_title="σ_θθ / σ∞", height=400)
         st.plotly_chart(fig5, use_container_width=True)
 
@@ -285,7 +346,8 @@ with tab2:
                 f"(Kirsch exact = 3.00)")
 
         # ── Plot 6: σ_xx along x-axis (θ=0) ──
-        st.markdown("#### σ_xx along x-axis (y ≈ 0, showing stress decay from hole)")
+        st.markdown(r"#### $σ_{xx}$ along x-axis ($y ≈ 0$, showing stress "
+                    + "change from hole)")
         axis_tol = H / (2 * n_ang)
         xaxis_mask = (np.abs(centroids_h[:, 1]) < axis_tol) & (centroids_h[:, 0] > R * 0.8)
         r_xaxis = centroids_h[xaxis_mask, 0]
@@ -297,18 +359,46 @@ with tab2:
 
         fig6 = go.Figure()
         fig6.add_trace(go.Scatter(x=r_xaxis[sort6], y=sig_xx_xaxis[sort6] / sigma_inf,
-                                  mode='markers+lines', name='FEA'))
+                                  mode='markers+lines',
+                                  line=dict(color=plc_fea),
+                                  marker=dict(color=plc_fea),
+                                  name='FEA'))
         fig6.add_trace(go.Scatter(x=r_anal, y=sig_xx_anal / sigma_inf,
-                                  mode='lines', name='Kirsch', line=dict(dash='dash')))
+                                  mode='lines', name='Kirsch',
+                                  line=dict(color=plc_ex1, dash='dash')))
         fig6.update_layout(xaxis_title="r (m)", yaxis_title="σ_xx / σ∞", height=400)
         st.plotly_chart(fig6, use_container_width=True)
 
         # ── Plot 7: Deformed mesh ──
-        st.markdown("#### Deformed Mesh — Von Mises Stress")
+        st.markdown("#### Deformed Mesh — Plate Stresses")
+        stress_type_h = st.selectbox(
+            "Plate Stress Type", ["σ_VM", "σ_xx", "σ_yy", "τ_xy"],
+            key="stress_type_h")
         scale_h = st.slider("Deformation scale", 1, 1000, 200, key="hole_scale")
-        st.plotly_chart(plot_deformed_mesh(nodes_h, elems_h, u_h, stresses_h, scale_h,
-                                           "Deformed Plate with Hole"),
+        st.plotly_chart(plot_deformed_mesh(
+            nodes_h, elems_h, u_h, stresses_h, scale_h, "Deformed Plate with Hole", 
+            stress_type=stress_type_h),
                         use_container_width=True)
+
+        # ── CSV export ──
+        st.markdown("#### Export Results")
+        disp_h_df = pd.DataFrame({
+            'node': np.arange(len(nodes_h)),
+            'x': nodes_h[:, 0], 'y': nodes_h[:, 1],
+            'u': u_h[0::2], 'v': u_h[1::2]
+        })
+        stress_h_df = pd.DataFrame(stresses_h, columns=['sigma_xx', 'sigma_yy', 'tau_xy'])
+        stress_h_df.insert(0, 'element', np.arange(len(stresses_h)))
+
+        col_d1, col_d2 = st.columns(2)
+        with col_d1:
+            st.download_button("Download displacements (CSV)",
+                               disp_h_df.to_csv(index=False),
+                               "displacements_h.csv", "text/csv", key="csv_h_d1")
+        with col_d2:
+            st.download_button("Download stresses (CSV)",
+                               stress_h_df.to_csv(index=False), "stresses.csv",
+                               "text/csv", key="csv_h_d2")
 
 
 # ══════════════════════════════════════════════
@@ -321,11 +411,13 @@ with tab3:
 
     with conv_col1:
         st.markdown("##### Cantilever: Tip Deflection Convergence")
+        D_conv = compute_D(E, nu, mode_key)
+        L_c = st.number_input(r"Length $L_c$ (m)", value=1.0, key="L_c")
+        h_c = st.number_input(r"Height $h_c$ (m)", value=0.25, key="h_c")
+        t_c = st.number_input(r"Thickness $t_c$ (m)", value=1.0, key="t_c")
+        P_c = st.number_input(r"Load $P_c$ (N)", value=6000, key="P_c")
         if st.button("Run Cantilever Convergence", key="conv_cant"):
             mesh_sizes = [2, 4, 8, 16, 32]
-            D_conv = compute_D(E, nu, mode_key)
-            L_c, h_c, P_c = 1.0, 0.25, 6000.0
-            t_c = 1.0
             tip_exact = timoshenko_deflection(L_c, L_c, h_c, P_c, E, nu, t_c)
             n_elems_list, errors = [], []
 
@@ -351,7 +443,10 @@ with tab3:
 
             fig_conv = go.Figure()
             fig_conv.add_trace(go.Scatter(x=n_elems_list, y=errors,
-                                          mode='markers+lines', name='FEA error'))
+                                          mode='markers+lines',
+                                          line=dict(color=plc_fea),
+                                          marker=dict(color=plc_fea),
+                                          name='FEA error'))
             fig_conv.update_layout(xaxis_title="Number of elements", yaxis_title="Relative error",
                                    xaxis_type="log", yaxis_type="log", height=400,
                                    title=f"Convergence rate p = {p_slope:.2f}")
@@ -360,9 +455,13 @@ with tab3:
 
     with conv_col2:
         st.markdown("##### Plate with Hole: Stress Concentration Convergence")
+        W_h = st.number_input(r"Half-Width $W_h$ (m)", value=5.0, key="W_h")
+        H_h = st.number_input(r"Half-Height $H_h$ (m)", value=5.0, key="H_h")
+        R_h = st.number_input(r"Hole Radius $R_h$ (m)", value=1.0, key="R_h")
+        t_h = st.number_input(r"Thickness $t_h$ (m)", value=0.1, key="t_h")
+        sig_h = st.number_input(r"Stress $\sigma_{\infty}$ (Pa)", value=1.0, key="sig_h")
         if st.button("Run Hole Convergence", key="conv_hole"):
             rad_sizes = [4, 6, 8, 12, 16, 20]
-            W_h, H_h, R_h, sig_h = 5.0, 5.0, 1.0, 1e6
             D_hconv = compute_D(E, nu, mode_key)
             kt_list, n_elems_h_list = [], []
 
@@ -370,8 +469,9 @@ with tab3:
             for idx, nr in enumerate(rad_sizes):
                 na = nr + 2
                 nodes_hc, elems_hc, tags_hc = generate_plate_with_hole_mesh(W_h, H_h, R_h, nr, na)
-                K_hc = assemble_K(nodes_hc, elems_hc, D_hconv, t)
-                R_hc = assemble_R_uniform_tension(nodes_hc, tags_hc["right"], sig_h, t)
+                K_hc = assemble_K(nodes_hc, elems_hc, D_hconv, t_h)
+                R_hc = assemble_R_uniform_tension(
+                    nodes_hc, tags_hc["right"], sig_h, t_h)
                 fd_h = []
                 for nd in tags_hc["sym_x"]:
                     fd_h.append(2*nd + 1)
@@ -394,8 +494,10 @@ with tab3:
 
             fig_kt = go.Figure()
             fig_kt.add_trace(go.Scatter(x=n_elems_h_list, y=kt_list,
-                                        mode='markers+lines', name='FEA K_t'))
-            fig_kt.add_hline(y=3.0, line_dash="dash", annotation_text="Kirsch exact (K_t=3)")
+                                        mode='markers+lines',line=dict(color=plc_fea),
+                                        marker=dict(color=plc_fea),name='FEA K_t'))
+            fig_kt.add_hline(y=3.0, line_dash="dash", 
+                             line=dict(color=plc_ex1),annotation_text="Kirsch exact (K_t=3)")
             fig_kt.update_layout(xaxis_title="Number of elements", yaxis_title="K_t",
                                  xaxis_type="log", height=400,
                                  title="Stress Concentration Factor Convergence")
@@ -405,12 +507,17 @@ with tab3:
     st.markdown("---")
     st.subheader("Volumetric Locking Investigation")
     st.markdown("Run the cantilever in **plane strain** for increasing ν → 0.5")
+    L_l = st.number_input(r"Length $L_l$ (m)", value=1.0, key="L_l")
+    h_l = st.number_input(r"Height $h_l$ (m)", value=0.25, key="h_l")
+    t_l = st.number_input(r"Thickness $t_l$ (m)", value=1.0, key="t_l")
+    P_l = st.number_input(r"Load $P_l$ (N)", value=6000, key="P_l")
+    nx_l = max(1, round(st.number_input(r"Divisions in x", value=8,
+                                        key="nx_l")))
+    ny_l = max(1, round(st.number_input(r"Divisions in y", value=4,
+                                        key="ny_l")))
 
     if st.button("Run Locking Study", type="primary", key="locking"):
         nu_values = [0.3, 0.4, 0.45, 0.49, 0.499, 0.4999]
-        L_l, h_l, P_l = 1.0, 0.25, 6000.0
-        t_l = 1.0
-        nx_l, ny_l = 8, 4
         norm_deflections, cond_numbers = [], []
 
         progress3 = st.progress(0)
@@ -442,7 +549,10 @@ with tab3:
         with lock_col1:
             fig_lock = go.Figure()
             fig_lock.add_trace(go.Scatter(x=nu_values, y=norm_deflections,
-                                          mode='markers+lines'))
+                                          mode='markers+lines',
+                                          line=dict(color=plc_fea),
+                                          marker=dict(color=plc_fea),
+                                          ))
             fig_lock.add_hline(y=1.0, line_dash="dash", annotation_text="Exact")
             fig_lock.update_layout(xaxis_title="Poisson's ratio ν",
                                    yaxis_title="v_FEA / v_exact",
@@ -453,7 +563,9 @@ with tab3:
         with lock_col2:
             fig_cond = go.Figure()
             fig_cond.add_trace(go.Scatter(x=nu_values, y=cond_numbers,
-                                          mode='markers+lines'))
+                                          mode='markers+lines',
+                                          line=dict(color=plc_fea),
+                                          marker=dict(color=plc_fea)))
             fig_cond.update_layout(xaxis_title="Poisson's ratio ν",
                                    yaxis_title="Condition number",
                                    yaxis_type="log",
