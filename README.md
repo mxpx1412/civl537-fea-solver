@@ -19,7 +19,8 @@ This is a Constant Strain Triangle (CST) Finite Element Analysis (FEA) solver
 developed as part of a class project for UBC Civil 537 (Computation Mechanics).
 The resulting application uses **CST elements** to analyze a **Cantilever beam
 loaded with parabolic tip shear** as well as a **Plate with hole loaded with
-edge stress** for **linear-elastic isotropic materials**. 
+edge stress** for **linear-elastic isotropic materials**. Please see the
+[projet description](./Project_02_Description.md) for initial task sheet.
 
 ### How to Run
 
@@ -1796,6 +1797,11 @@ triangular element with more nodes**.
     + Terminal Emulator: [Konsole](https://apps.kde.org/konsole/)
     + Miscellaneous testing (not for final deliverables): [Jupyter
       Lab](https://jupyter.org/)
++ **Video demo** ([private
+  video link](https://canvas.ubc.ca/courses/176045/assignments/2430514/submissions/43581?download=46129537)):
+    + Recording: [OBS](https://obsproject.com/)
+    + Editing: [Kdenlive](https://kdenlive.org/)
+
 
 
 ### Bibliography
