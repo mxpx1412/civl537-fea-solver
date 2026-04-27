@@ -20,7 +20,7 @@ developed as part of a class project for UBC Civil 537 (Computation Mechanics).
 The resulting application uses **CST elements** to analyze a **Cantilever beam
 loaded with parabolic tip shear** as well as a **Plate with hole loaded with
 edge stress** for **linear-elastic isotropic materials**. Please see the
-[projet description](./Project_02_Description.md) for initial task sheet.
+[project description](./Project_02_Description.md) for initial task sheet.
 
 ### How to Run
 
