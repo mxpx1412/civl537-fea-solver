@@ -5,14 +5,25 @@ title: "CIVL537 CST FEA Solver"
 # CIVL 537 CST FEA Solver
 
 ------
-------
 
 ## Overview
 
 This is a Constant Strain Triangle (CST) Finite Element Analysis (FEA) solver
 developed as part of a class project for UBC Civil 537 (Computation Mechanics).
+The resulting application uses **CST elements** to analyze a **Cantilever beam
+loaded with parabolic tip shear** as well as a **Plate with hole loaded with
+edge stress** for **linear-elastic isotropic materials**. 
 
 ### How to Run
+
+#### Running Online WebApp
+
++ The app may be accessed without any installations via the [live WebApp hosted
+  on Streamlit](https://civl537-fea-solver-project.streamlit.app/). 
++ For users who want to self-deploy, please see: [guide to Streamlit
+  deployment](https://docs.streamlit.io/deploy/streamlit-community-cloud)
+
+------
 
 #### Running with Docker
 
@@ -47,32 +58,23 @@ docker compose run fea-solver pytest test/test_assembly.py -v
 Expected results:
 
 ```bash
-tests/test_assembly.py::test_K_shape PASSED                                                  [  6%]
-tests/test_assembly.py::test_K_symmetric PASSED                                              [ 12%]
-tests/test_assembly.py::test_R_equilibrium PASSED                                            [ 18%]
-tests/test_elements.py::test_area_known_triangle PASSED                                      [ 25%]
-tests/test_elements.py::test_area_negative_orientation PASSED                                [ 31%]
-tests/test_elements.py::test_B_matrix_shape PASSED                                           [ 37%]
-tests/test_elements.py::test_B_rigid_body_motion PASSED                                      [ 43%]
-tests/test_elements.py::test_B_known_values PASSED                                           [ 50%]
-tests/test_elements.py::test_k_symmetric PASSED                                              [ 56%]
-tests/test_elements.py::test_k_positive_semidefinite PASSED                                  [ 62%]
-tests/test_elements.py::test_D_plane_stress_vs_plane_strain PASSED                           [ 68%]
-tests/test_elements.py::test_D_plane_stress_symmetry PASSED                                  [ 75%]
-tests/test_solver.py::test_fixed_dofs_zero PASSED                                            [ 81%]
-tests/test_solver.py::test_strain_energy_positive PASSED                                     [ 87%]
-tests/test_solver.py::test_tip_deflection_order_of_magnitude PASSED                          [ 93%]
-tests/test_solver.py::test_patch_test PASSED                                                 [100%]
+tests/test_assembly.py::test_K_shape PASSED                              [  6%]
+tests/test_assembly.py::test_K_symmetric PASSED                          [ 12%]
+tests/test_assembly.py::test_R_equilibrium PASSED                        [ 18%]
+tests/test_elements.py::test_area_known_triangle PASSED                  [ 25%]
+tests/test_elements.py::test_area_negative_orientation PASSED            [ 31%]
+tests/test_elements.py::test_B_matrix_shape PASSED                       [ 37%]
+tests/test_elements.py::test_B_rigid_body_motion PASSED                  [ 43%]
+tests/test_elements.py::test_B_known_values PASSED                       [ 50%]
+tests/test_elements.py::test_k_symmetric PASSED                          [ 56%]
+tests/test_elements.py::test_k_positive_semidefinite PASSED              [ 62%]
+tests/test_elements.py::test_D_plane_stress_vs_plane_strain PASSED       [ 68%]
+tests/test_elements.py::test_D_plane_stress_symmetry PASSED              [ 75%]
+tests/test_solver.py::test_fixed_dofs_zero PASSED                        [ 81%]
+tests/test_solver.py::test_strain_energy_positive PASSED                 [ 87%]
+tests/test_solver.py::test_tip_deflection_order_of_magnitude PASSED      [ 93%]
+tests/test_solver.py::test_patch_test PASSED                             [100%]
 ```
-
-------
-
-#### Running Live Online WebApp
-
-+ The app may be accessed without any installations via the [live WebApp hosted
-  on Streamlit](https://civl537-fea-solver-project.streamlit.app/). 
-+ [Guide to Streamlit
-  deployment](https://docs.streamlit.io/deploy/streamlit-community-cloud)
 
 ------
 
@@ -1346,13 +1348,7 @@ Essentially the two edge nodes each take half the load.
 #### Solver
 
 The previous steps provides the global stiffness matrix $[K_g]$ and the global
-consistent load vector 
-$\begin{Bmatrix} 
-    R 
-\end{Bmatrix} = 
-\begin{Bmatrix} 
-    R_g 
-\end{Bmatrix}$. 
+consistent load vector $ \{R\} = \{ R_g \}$. 
 The fixed DOFs are also previously defined. Based on
 recommendations, the final displacements are computed as follows: 
 
@@ -1395,15 +1391,9 @@ $$
 \end{align}
 $$
 
-4. The final ***global displacement vector***
-    $\begin{Bmatrix} 
-        u_g 
-    \end{Bmatrix}$ is
+4. The final ***global displacement vector*** $\{ u_g \}$ is
    equal to $0$ at fixed DOFs, and equal to the corresponding value in the
-   solved 
-   $\begin{Bmatrix} 
-    u_f 
-    \end{Bmatrix}$ at free DOFs. 
+   solved $\{ u_f \}$ at free DOFs. 
 
 #### Post Processing
 
