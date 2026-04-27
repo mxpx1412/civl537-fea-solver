@@ -4,6 +4,13 @@ title: "CIVL537 CST FEA Solver"
 
 # CIVL 537 CST FEA Solver
 
+<p align="center">
+<img 
+    src="./readme_figs/fig_app_screenshot.png" 
+    alt="FEA App Screenshot"
+    width="800px"/>
+</p>
+
 ------
 
 ## Overview
