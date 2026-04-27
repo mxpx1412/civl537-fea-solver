@@ -4,13 +4,98 @@ title: "CIVL537 CST FEA Solver"
 
 # CIVL 537 CST FEA Solver
 
+------
+------
+
 ## Overview
 
 This is a Constant Strain Triangle (CST) Finite Element Analysis (FEA) solver
 developed as part of a class project for UBC Civil 537 (Computation Mechanics).
-[The live web app is on Streamlit](https://civl537-fea-solver-project.streamlit.app/). 
+
+### How to Run
+
+#### Running with Docker
+
+1. Download or clone this repo.
+```bash
+git clone https://github.com/mxpx1412/civl537-fea-solver.git
+```
+2. Install Docker:
+    + **Option 1 - Desktop**: install [Docker
+      Desktop](https://www.docker.com/products/docker-desktop/)
+    + **Option 2 - Docker Engine + Compose Plugin** (Linux Only): 
+        + Install the [Docker Engine](https://docs.docker.com/engine/)
+        + Install the [Docker Compose
+          plugin](https://docs.docker.com/compose/install/linux/)
+3. In the repo directory, run docker compose:
+```bash
+docker compose up
+```
+4. If `docker compose` is successful, open `http://localhost:8501`
+
+------
+
+#### Running Tests
+
+If [docker set-up](#running-with-docker) is successful, the unit tests in
+`/tests` can be ran using:
+
+```bash
+docker compose run fea-solver pytest test/test_assembly.py -v
+```
+
+Expected results:
+
+```bash
+tests/test_assembly.py::test_K_shape PASSED                                                  [  6%]
+tests/test_assembly.py::test_K_symmetric PASSED                                              [ 12%]
+tests/test_assembly.py::test_R_equilibrium PASSED                                            [ 18%]
+tests/test_elements.py::test_area_known_triangle PASSED                                      [ 25%]
+tests/test_elements.py::test_area_negative_orientation PASSED                                [ 31%]
+tests/test_elements.py::test_B_matrix_shape PASSED                                           [ 37%]
+tests/test_elements.py::test_B_rigid_body_motion PASSED                                      [ 43%]
+tests/test_elements.py::test_B_known_values PASSED                                           [ 50%]
+tests/test_elements.py::test_k_symmetric PASSED                                              [ 56%]
+tests/test_elements.py::test_k_positive_semidefinite PASSED                                  [ 62%]
+tests/test_elements.py::test_D_plane_stress_vs_plane_strain PASSED                           [ 68%]
+tests/test_elements.py::test_D_plane_stress_symmetry PASSED                                  [ 75%]
+tests/test_solver.py::test_fixed_dofs_zero PASSED                                            [ 81%]
+tests/test_solver.py::test_strain_energy_positive PASSED                                     [ 87%]
+tests/test_solver.py::test_tip_deflection_order_of_magnitude PASSED                          [ 93%]
+tests/test_solver.py::test_patch_test PASSED                                                 [100%]
+```
+
+------
+
+#### Running Live Online WebApp
+
++ The app may be accessed without any installations via the [live WebApp hosted
+  on Streamlit](https://civl537-fea-solver-project.streamlit.app/). 
++ [Guide to Streamlit
+  deployment](https://docs.streamlit.io/deploy/streamlit-community-cloud)
+
+------
+
+#### App UI Usage Overview
+
+The app has the following main elements:
+
++ **Side bar**: allows for user input of material properties.
++ **Cantilever Tab**: takes user inputs on cantilever geometry, loading,
+  and meshing. Analyzes a cantilever beam and outputs resulting plots.
++ **Plate with Hole Tab**: takes user inputs on plate geometry, loading, and
+  meshing. Analyzes a double-symmetric plate (only 1st quadrant shown by
+  symmetry) with hole loaded on the right edge and outputs resulting plots.
++ **Convergence and Locking**: runs convergence rate and locking studies,
+  please see discussion [below](#part-8---investigation)
+
+------
+------
 
 ## Mechanics and Implementation Discussion
+
+The mechanics and implementation is discussed in greater depth in this section.
+For how to run the project, please see [above](#how-to-run).
 
 ### Part 1 - Repository Set-up
 
@@ -22,6 +107,8 @@ developed as part of a class project for UBC Civil 537 (Computation Mechanics).
   guide](https://docs.docker.com/engine/install/debian/).
 + The starter app was successfully launched locally. Deployment to Streamlit
   was also successful. 
+
+------
 
 ### Part 2 - CST Element Formulation
 
@@ -751,6 +838,8 @@ array([[-1.,  0.,  1.,  0.,  0.,  0.],
 
 We see that the hand calculation and the implemented function aligns. 
 
+------
+
 ### Part 3 - Meshing
 
 #### Rectangular Mesh
@@ -919,6 +1008,8 @@ $$
 Finally, the element construction proceeds similarly to the rectangular mesh
 case. Instead of horizontal rows and vertical columns, the process is applied
 across radial rays and across angular rings. 
+
+------
 
 ### Part 4 - Global Assembly
 
@@ -1248,13 +1339,21 @@ $$
 
 Essentially the two edge nodes each take half the load.
 
+------
+
 ### Part 5 - Solver and Post Processing
 
 #### Solver
 
 The previous steps provides the global stiffness matrix $[K_g]$ and the global
-consistent load vector $\begin{Bmatrix} R \end{Bmatrix} = \begin{Bmatrix} R_g
-\end{Bmatrix}$. The fixed DOFs are also previously defined. Based on
+consistent load vector 
+$\begin{Bmatrix} 
+    R 
+\end{Bmatrix} = 
+\begin{Bmatrix} 
+    R_g 
+\end{Bmatrix}$. 
+The fixed DOFs are also previously defined. Based on
 recommendations, the final displacements are computed as follows: 
 
 1. A list of free DOFs is constructed as the complement of the fixed DOFs (i.e.
@@ -1296,9 +1395,15 @@ $$
 \end{align}
 $$
 
-4. The final ***global displacement vector*** $\begin{Bmatrix} u_g \end{Bmatrix}$ is
+4. The final ***global displacement vector***
+    $\begin{Bmatrix} 
+        u_g 
+    \end{Bmatrix}$ is
    equal to $0$ at fixed DOFs, and equal to the corresponding value in the
-   solved $\begin{Bmatrix} u_f \end{Bmatrix}$ at free DOFs. 
+   solved 
+   $\begin{Bmatrix} 
+    u_f 
+    \end{Bmatrix}$ at free DOFs. 
 
 #### Post Processing
 
@@ -1350,17 +1455,24 @@ $$
 \end{align}
 $$
 
-Finally the strain energy is computed by: 
+Finally the ***strain energy*** is computed by: 
 
 $$
 \begin{align}
-    
+U_{\epsilon} &= \frac{1}{2} 
+\begin{Bmatrix}
+    u
+\end{Bmatrix}^T
+[K]
+\begin{Bmatrix}
+    u
+\end{Bmatrix}
 \end{align}
 $$
 
 #### Test Modification
 
-***IMPORTANT***: one of the function in the initially given `test_solver.py`
+One of the function in the initially given `test_solver.py`
 unit test was modified to correct an apparent calculation discrepancy.  In the
 initially given test, the stiffness matrix implicitly used a thickness of
 `0.01`, original code:
@@ -1374,13 +1486,299 @@ K = assemble_K(nodes, elems, D, 0.01)
 ```python
 I = h**3 /12
 ```
-
 ...which implied a thickness of `1`, which appears inconsistent. Therefore,
 an explicit variable `thickness` was introduced and assigned a value to
 maintain consistency.
 
 The test was failing prior to the modification, but passed afterwards.
 
+------
+
+### Part 6 - Analytical Solutions
+
+The analytical solutions were provided in `analytics.py` - albeit an
+modification was made to the initial files to **include thickness in the beam
+solutions**, as the initial beam solutions omitted thickess from the moments of
+inertial $I$. 
+
+The exact ***Euler-Bernoulli beam deflection solution*** is:
+
+$$
+\begin{align}
+v(x, y=0)
+    &= 
+    \frac{P x^2 (3L - x)}{6EI}
+\end{align}
+$$
+
+The exact ***Timoshenko beam deflection solution*** is:
+
+$$
+\begin{align}
+v(x, y=0)
+    &= 
+    \frac{P x^2}{6EI} (3L  - x)
+    + \frac{P}{2GI} \frac{h^2}{4} (L-x)
+\end{align}
+$$
+
+The Timoshenko solution has an added term to account for the *effect of
+shearing force* on the deflection on the beam, but at the cantilever free end
+the solution coincides with Euler-Bernoulli [^citeTimoshenko].
+
+The **Timoshenko stress solutions** are:
+
+$$
+\begin{align}
+    \sigma_{xx} &= \frac{-P(L-x)y}{I} \\
+    \tau_{xy} &= \frac{P}{2I} \left(\frac{h^2}{4y^2}\right)
+\end{align}
+$$
+
+For the plate-with-hole, the exact ***Kirsch stress solutions*** are:
+
+$$
+\begin{align}
+\sigma_{rr}
+    &= \frac{\sigma_{\infty}}{2} 
+        \left[
+            (1 - \rho^2) + 
+            (1 - 4\rho^2 + 3\rho^4) \cos(2\theta)
+        \right] \\
+\sigma_{\theta\theta}
+    &= \frac{\sigma_{\infty}}{2} 
+        \left[
+            (1 + \rho^2) - 
+            (1 + 3\rho^4) \cos(2\theta)
+        \right] \\
+\tau_{r \theta}
+    &= -\frac{\sigma_{\infty}}{2} 
+        \left[
+            (1+2\rho^2 - 3\rho^4)\sin(2\theta)
+        \right] \\
+\rho 
+    &:= \frac{R}{r}
+\end{align}
+$$
+
+$$
+\begin{align}
+\sigma_{xx} 
+    &= \sigma_{rr} c_t^2 + \sigma_{\theta\theta} s_t^2 - 
+        2\tau_{r\theta} s_t c_t \\
+\sigma_{yy} 
+    &= \sigma_{rr} s_t^2 + \sigma_{\theta\theta} c_t^2 + 
+        2\tau_{r\theta} s_t c_t \\
+\tau_{xy}
+    &= (\sigma_{rr} - \sigma_{\theta\theta}) s_t c_t +
+        \tau_{r\theta} (c_t^2 - s_t^2) \\
+c_t &:= \cos\theta \\
+s_t &:= \sin\theta 
+\end{align}
+$$
+
+Note the Kirsch solution is derived for an infinite plate [^citeOsovski].
+
+------
+
+### Part 7 - App Integration
+
+The app integration is largely provided in the initial `app.py` file. Some UI
+customizations were made. Additionally, changes to made to account for the
+missed thickness in the initially given analytical solution. The selection of
+the elements near the hole for the plate analysis was also modified to use the
+boundary tags from meshing, instead of by distance as was the case in the
+initial file. 
+
+The plots all display correctly after minor bug fixes. Visual inspection
+confirms the following plot results for the **Cantielver Beam**:
+
++ The Cantilever FEA stress/deflection solutions area close to both the
+  Euler-Bernoulli and TImoshenko solutions, with improving accuracy with
+  increased elements. 
++ The Cantilever shear stress oscillates across the cantilever depth, due to
+  the CSTs being discrete and having constant strain individually. However,
+  mean of the oscillation coincides witht eh predicted parabolic shear stress.
++ The Cantilever FEA deformed shape is concave-up for a positive (upward) $P$,
+  which conforms to expectation.
+
+Inspection also confirms the following for the **Plate with Hole**:
+
++ The plate's $\sigma_{\theta\theta}$ conforms closely to the Kirsch solution,
++ The ratio $\sigma_{\theta\theta}/\sigma_{\infty} = 3.07 \approx 3$ for a 
+    plate of $5 \times 5 m^2$ size, with 10 radial divisions and 12 angular
+    divisions. 
++ The plate's $\sigma_{xx}$ conforms closely to the Kirsch solution, with lower
+  stress near the hole and tending towards the applied $\sigma_{\infty}$ on the
+  edge, which is reasonable.
+
+------
+
+### Part 8 - Investigation
+
+#### Convergence Studies
+
+Running the convergence studies provided, the cantilever tip deflection returns
+a convergence rate of $p=-0.84$ using the initially provided settings, which is
+reasonably close to the expected value of $-1$. This increases confidence for
+the accuracy of the FEA results. 
+
+For the plate with hole convergence, increasing elements do appear to cause the
+ratio $\sigma_{\theta\theta}/\sigma_{\infty}$ to approach $3$. For the
+initially provided settings, the value does exceed $3$ slightly at high element
+counts, but the ratio still becomes asymptotic around $3$ with higher elements.
+The discrepancy may be due to genuine phyiscal differences between the FEA
+problem compared to the Kirsch solution (finite plate vs. infinite plate). It
+could also be due to the CST element's inherently stiffer formulation causing
+the resulting stress to be higher than the analytical when elements are high.
+
+#### Locking Study Explanation
+
+The locking study is able to demonstrate that the deformation of a plane strain
+collapse towards nil as the Poisson's ratio approaches $0.5$. 
+
+
+To understand this phenomenon, we first consider the ***volumetric strain***,
+which is the change in volume per volume of material, it is expressed as [^citeZienkiewicz]:
+
+$$
+\begin{align}
+\epsilon_v &= \epsilon_{xx} + \epsilon_{yy} + \epsilon_{zz}
+= \frac{\sigma_{xx} + \sigma_{yy} + \sigma_{zz}}{\left(\frac{E}{1-2\nu}\right)}
+\end{align}
+$$
+
+Observe that as $\nu \to 0.5$, we have $\epsilon_v \to 0$, i.e. the volume
+change becomes zero. In terms of physical intuition, we can consider an elastic
+unit cube. If such a unit cube has $\nu = 0.5$, and it is compressed by $-l$
+along the $x$ axis, then:
+
++ The strain along $x$ is $\epsilon_x = -l/1 = -l$
++ The strain along $y$ is $\epsilon_y = -0.5\epsilon_x = 0.5l$
++ The strain along $z$ is $\epsilon_z = -0.5\epsilon_x = 0.5l$
++ The volume change normal to $x$: $\Delta V_x \approx -l\times(1\times 1)=-l$
++ The volume change normal to $y$: $\Delta V_y \approx 0.5l\times(1\times 1)=0.5l$
++ The volume change normal to $z$: $\Delta V_z \approx 0.5l\times(1\times 1)=0.5l$
++ The total volume change: $\Delta V = -l + 0.5l + 0.5l = 0$
+
+In other words, at $\nu=0.5$, compressing the volume in one direction will
+cause the material to "bulge-out" by equal amounts in the other directions,
+resulting in no net volume chnange, resulting in ***incompressibility***. 
+
+If, in addition to this incompressibility constraint, we impose the ***plane
+strain*** condition, preventing out-of-plane deformations, then we have: 
+
+$$
+\begin{align}
+\epsilon_v 
+    &= \epsilon_{xx} + \epsilon_{yy} + 0 = \epsilon_{xx} + \epsilon_{yy}
+\nu = 0 \implies 0
+    &= \epsilon_{xx} + \epsilon_{yy}
+\implies
+    -\epsilon_{xx}
+    &= \epsilon_{yy}
+\end{align}
+$$
+
+In other words, in-plane strains become equal and opposite: compressing the
+length in the $x$ direction results in an equal elongation in $y$ and vice
+versa, effectively preventing a change in area. 
+
+For elements with constant strain field, this can become particularly
+problematic, resulting in ***volumetric locking***. Consider in-plane pure
+bending, which in a real elastic continuum results in compression of one side
+and elongation on the other. If in-plane area change is prevented, the real
+continuum can still accomodate bending - the continuum simply needs to compress
+and extend by equal amounts on either side using a varying strain field.
+However, if we consider a constant strain element - such as the CST, such a
+varying strain field is not possible, so for an individual element to conform
+to the area constrain, the only solution is the trivial solution of no
+deformation - which results in ***locking***.
+
+We also see that the CST is especially susceptible due to its limited degrees
+of freedom relative to this constraint. To see this, we can consider
+***constraint counting*** [^citeHughes].  Consider a rectangular mesh of CST
+elements. Using the same meshing scheme as our formulation, the rectangle is
+divided into a grid of $n_x \times n_y$ sub-rectangles, and two CST elements
+are in each sub-rectangle. For this mesh, the number of nodes are:
+
+$$
+\begin{align}
+    n_{nodes} &= (n_x + 1)\cdot (n_y + 1) \\
+\end{align}
+$$
+
+For CSTs, there are 2-DOFs per node, so the total DOFs are (assume divisions
+are numerous $n_x >> 1$, $n_y >> 1$):
+
+$$
+\begin{align}
+    n_{DOFs} &= 2n_{nodes} = 2(n_x+1)(n_y+1) \\
+    n_{DOFs} &\approx 2n_x n_y 
+\end{align}
+$$
+
+For this mesh, the number of elements are:
+
+$$
+\begin{align}
+    n_{elems} &= 2 n_x n_y
+\end{align}
+$$
+
+Since each element has the constant-area constraint imposed by $\nu=0.5$, 
+plane strain and constant strain field, the number of constraint (excluding
+other boundary conditions) is:
+
+$$
+\begin{align}
+    n_c &= n_{elems} = 2 n_x n_y
+\end{align}
+$$
+
+Now consider the ***constraint ratio*** of DOFs (equations) to the number of
+constraints, we have:
+
+$$
+\begin{align}
+\frac{n_{DOFs}}{n_c} &= \frac{2 n_x n_y}{2 n_x n_y} = 1
+\end{align}
+$$
+
+For a 2D problem, Hughes recommends a value of $2$ for this ratio to prevent
+locking [^citeHughes], but we only have $1$. More informally, we can say that
+there are about as many constraints as there are equations, making the problem
+overly constrained and not possible solve except the trivial solution (locked
+system with no deformation).
+
+***In summary***: As the Poisson's ratio goes to $0.5$, the material becomes
+incompressible and prevents volume changes. Further, plane strain condition
+prevents out of plane deformations, so incompressibility in a constant 2D
+strain field  prevents in-plane area change. The CST element's limited
+(constant) strain field does not have sufficient DOFs relative to this area
+constraint, so the only solution is one that prevents any deformation -
+resulting in a completely locked system.
+
+There are a few ***ways to mitigate volumetric locking***, including but not
+limited to:
+
+1. **Using higher order elements**: higher order elements can have varying
+   strain fields, so the area constraint can be obeyed by equal compression and
+   extension at different parts of the element.
+2. **Using reduced integration points**: the locking issue can be understood as
+    an overly constrained system becoming too stiff, so using reduced
+    integration points can correct for this by reducing the stiffness.
+    Unfornately **the CST cannot adopt reduced integration points**, since the
+    CST by definition results in a constant $[B]$ matrix, so there is only one
+    independent integration point to begin with.
+3. **Using more advanced analysis methods**: in literature there are B-bar,
+   F-bar and u-p methods to analyze incompressibility problems [^citeBathe].
+
+The easiest fix relative to the current formulation is likely **using a
+triangular element with more nodes**.
+
+------
+------
 
 ## References
 
@@ -1424,3 +1822,18 @@ Please see footnotes below.
 [^citeHaukaas24]: T. Haukaas (2024). A Short Course on Nonlinear Finite Element
     Analysis: "Material Nonlinearity". [Online]. Available: 
     [https://civil-terje.sites.olt.ubc.ca/files/2024/04/Slides-on-Material-Nonlinearity.pdf](https://civil-terje.sites.olt.ubc.ca/files/2024/04/Slides-on-Material-Nonlinearity.pdf)
+[^citeTimoshenko]: S. Timoshenko and J.N. Goodier, "Two-Dimensional Problems"
+    in *Theory of Elasticity*, 1951, ch. 3.
+[^citeOsovski]: S. Osovski. ME036004 Introduction to Fracture Mechanics:
+    "Kirsch's Infite Plate" [Online]. Available:
+    [https://sosovski.group/ME036004/LEFM/Kirsch-Plate.html](https://sosovski.group/ME036004/LEFM/Kirsch-Plate.html)
+[^citeZienkiewicz]: O.C. Zienkiewicz, R.L. Taylor and J.Z.Zhu, "Elasticity:
+    Two- and Three-Dimensional Finite Elements" in *The Finite
+    Element Method (7th Ed.)*, 2013, ch. 7.
+[^citeHughes]: T.J.R. Hughes, "'Best Approximation' and Error Estimates: Why
+    the Standard FEM Usually Works and Why Sometimes it Does Not" in *Finite
+    Element Method - Linear Static and Dynamic Finite Element Analysis*, 2000,
+    ch. 4.3.7.
+[^citeBathe]: K.J.Bathe, "The Inf-Sup Condition for Analysis of Incompressible
+    Media and Structural Problems" in *Finite Element Procedures*, 1996, ch.
+    4.5.
